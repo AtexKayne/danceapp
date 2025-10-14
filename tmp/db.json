@@ -1,10 +1,16 @@
 {
   "groups": [
     {
-      "id": "1760466574677",
-      "name": "БГ(0\\+1)",
-      "time": "19:00",
-      "date": "2025-10-14"
+      "id": "1760481284742",
+      "name": "Test",
+      "time": "17:00",
+      "date": "2025-10-15"
+    },
+    {
+      "id": "1760481595396",
+      "name": "sdfsdf",
+      "time": "17:00",
+      "date": "2025-10-15"
     }
   ],
   "attendances": [
@@ -123,6 +129,24 @@
       "lastName": "Кремлев",
       "gender": "male",
       "isSupport": true,
+      "dateISO": "2025-10-14"
+    },
+    {
+      "id": "OWruMwvGK0vW4cCgtKyxi",
+      "groupId": "1760481284742",
+      "firstName": "Алексей",
+      "lastName": "Кремлев",
+      "gender": "male",
+      "isSupport": true,
+      "dateISO": "2025-10-14"
+    },
+    {
+      "id": "iNo0vonS627Y33s6dK3O6",
+      "groupId": "1760481595396",
+      "firstName": "Алексей",
+      "lastName": "Кремлев",
+      "gender": "male",
+      "isSupport": false,
       "dateISO": "2025-10-14"
     }
   ]
