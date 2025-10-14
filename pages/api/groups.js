@@ -1,7 +1,5 @@
-import { readDb, writeDb } from '../../lib/db'
-
-export default function handler(req, res) {
-	const db = readDb()
+export default async function handler(req, res) {
+	const db = await getData()
 	const method = req.method
 
 	// Compute current time in UTC+5
@@ -20,7 +18,7 @@ export default function handler(req, res) {
 			// return groupTime > local
 		})
 		db.groups = visible
-		writeDb(db)		
+		updateData(db)
 		return res.json(visible)
 	}
 
@@ -29,7 +27,7 @@ export default function handler(req, res) {
 		const todayStr = today
 		const id = (Date.now()).toString()
 		db.groups.push({ id, name, time, date: todayStr })
-		writeDb(db)
+		updateData(db)
 		return res.status(201).json({ id, name, time, date: todayStr })
 	}
 
@@ -39,17 +37,60 @@ export default function handler(req, res) {
 		if (!g) return res.status(404).end()
 		g.name = name || g.name
 		g.time = time || g.time
-		writeDb(db)
+		updateData(db)
 		return res.status(200).json(g)
 	}
 
 	if (method === 'DELETE') {
 		const { id } = req.query
 		db.groups = db.groups.filter(g => g.id != id)
-		writeDb(db)
+		updateData(db)
 		return res.status(200).end()
 	}
 
 	res.setHeader('Allow', 'GET,POST,PUT,DELETE')
 	res.status(405).end('Method not allowed')
+}
+
+async function getData() {
+	try {
+		const response = await fetch('http://s1qwmailr2.temp.swtest.ru/', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+			}
+		});
+
+		if (!response.ok) {
+			throw new Error('Network response was not ok');
+		}
+
+		const data = await response.json();
+		return data;
+	} catch (error) {
+		console.error('Error:', error);
+	}
+}
+
+async function updateData(newData) {
+	try {
+		const response = await fetch('http://s1qwmailr2.temp.swtest.ru/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(newData)
+		});
+		console.log(response);
+		
+
+		if (!response.ok) {
+			throw new Error('Network response was not ok');
+		}
+
+		const result = await response.json();
+		return result;
+	} catch (error) {
+		console.error('Error:', error);
+	}
 }
