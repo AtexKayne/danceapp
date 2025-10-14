@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "chmod +x ./data/* && chmod +x ./var/task/data/* && next build",
+    "build": "chmod +x ./data/* && next build",
     "start": "next start"
   },
   "dependencies": {
+    "@vercel/blob": "^2.0.0",
+    "nanoid": "4.0.0",
     "next": "^13.5.6",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "nanoid": "4.0.0"
+    "react-dom": "18.2.0"
   }
 }
