@@ -1,23 +1,23 @@
+import { readDb, writeDb } from '../../lib/db'
 import { nanoid } from 'nanoid'
-import { put, list } from "@vercel/blob"
 
-export default async function handler(req, res) {
-	const db = await getJSON()
+export default function handler(req, res) {
+	const db = readDb()
 	const method = req.method
 	const today = new Date().toISOString().slice(0, 10)
 
 	if (method === 'GET') {
 		const visible = db.attendances.filter(a => a.dateISO === today)
 		db.attendances = visible
-		writeJSON(db)
-		return new Promise(res => res(db))
+		writeDb(db)
+		return res.json(visible)
 	}
 
 	if (method === 'POST') {
 		const { groupId, firstName, lastName, gender, isSupport = false } = req.body
 		const rec = { id: nanoid(), groupId, firstName, lastName, gender, isSupport, dateISO: today }
 		db.attendances.push(rec)
-		writeJSON(db)
+		writeDb(db)
 		notifySSE({ type: 'attendance_added', payload: rec })
 		return res.status(201).json(rec)
 	}
@@ -29,8 +29,7 @@ export default async function handler(req, res) {
 			const idx = db.attendances.findIndex(a => a.id === id)
 			if (idx !== -1) {
 				const removed = db.attendances.splice(idx, 1)[0]
-				writeJSON(db);
-				notifySSE({ type: 'attendance_removed', payload: removed })
+				writeDb(db); notifySSE({ type: 'attendance_removed', payload: removed })
 			}
 			return res.status(200).end()
 		} else {
@@ -44,8 +43,7 @@ export default async function handler(req, res) {
 					const idx = db.attendances.findIndex(a => a.groupId === groupId && a.firstName === firstName && a.lastName === lastName && a.dateISO === today)
 					if (idx !== -1) {
 						const removed = db.attendances.splice(idx, 1)[0]
-						writeJSON(db);
-						notifySSE({ type: 'attendance_removed', payload: removed })
+						writeDb(db); notifySSE({ type: 'attendance_removed', payload: removed })
 						return res.status(200).json({ removed })
 					}
 					return res.status(404).json({ error: 'Not found' })
@@ -65,14 +63,4 @@ export default async function handler(req, res) {
 			global._sseClients.forEach(r => r.write(data))
 		}
 	}
-}
-
-const getJSON = async () => {
-	const { blobs } = await list()
-	const res = await fetch(blobs[0].url)
-	return await res.json()
-}
-
-const writeJSON = (obj) => {
-	put('danceapp/db.json', JSON.stringify(obj), { access: 'public', allowOverwrite: true })
 }
