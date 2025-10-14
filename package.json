@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "chmod +x ./data/* && next build",
+    "build": "chmod +x ./data/* && chmod +x ./var/task/data/* && next build",
     "start": "next start"
   },
   "dependencies": {
