@@ -152,8 +152,6 @@ export default function Home() {
 }
 
 const RegisteredGroups = ({ registeredFor, cancel }) => {
-	console.log(registeredFor);
-
 	const keys = Object.keys(registeredFor)
 	if (!keys.length) return <div>Нет активной записи</div>
 

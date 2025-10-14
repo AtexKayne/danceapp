@@ -1,7 +1,7 @@
-import { readDb, writeDb } from '../../lib/db'
+import { put, list } from "@vercel/blob"
 
-export default function handler(req, res) {
-	const db = readDb()
+export default async function handler(req, res) {
+	const db = await getJSON()
 	const method = req.method
 
 	// Compute current time in UTC+5
@@ -20,8 +20,8 @@ export default function handler(req, res) {
 			// return groupTime > local
 		})
 		db.groups = visible
-		writeDb(db)		
-		return res.json(visible)
+		writeJSON(db)
+		return new Promise(res => res(visible))
 	}
 
 	if (method === 'POST') {
@@ -29,7 +29,7 @@ export default function handler(req, res) {
 		const todayStr = today
 		const id = (Date.now()).toString()
 		db.groups.push({ id, name, time, date: todayStr })
-		writeDb(db)
+		writeJSON(db)
 		return res.status(201).json({ id, name, time, date: todayStr })
 	}
 
@@ -39,17 +39,27 @@ export default function handler(req, res) {
 		if (!g) return res.status(404).end()
 		g.name = name || g.name
 		g.time = time || g.time
-		writeDb(db)
+		writeJSON(db)
 		return res.status(200).json(g)
 	}
 
 	if (method === 'DELETE') {
 		const { id } = req.query
 		db.groups = db.groups.filter(g => g.id != id)
-		writeDb(db)
+		writeJSON(db)
 		return res.status(200).end()
 	}
 
 	res.setHeader('Allow', 'GET,POST,PUT,DELETE')
 	res.status(405).end('Method not allowed')
+}
+
+const getJSON = async () => {
+	const { blobs } = await list()
+	const res = await fetch(blobs[0].url)
+	return await res.json()
+}
+
+const writeJSON = (obj) => {
+	put('danceapp/db.json', JSON.stringify(obj), { access: 'public', allowOverwrite: true })
 }
