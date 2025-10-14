@@ -1,7 +1,32 @@
 import { put, list } from "@vercel/blob"
+import { MongoClient } from 'mongodb'
 
 export default async function handler(req, res) {
-	const db = await getJSON()
+	const uri = process.env.MONGODB_URI
+	const options = {
+		useUnifiedTopology: true,
+		useNewUrlParser: true,
+	}
+
+	let client, clientPromise, db, collection
+
+	if (!process.env.MONGODB_URI) {
+		throw new Error('Please add your Mongo URI to .env.local')
+	}
+
+	if (process.env.NODE_ENV === 'development') {
+		// В разработке используем глобальную переменную
+		if (!global._mongoClientPromise) {
+			client = new MongoClient(uri, options)
+			global._mongoClientPromise = client.connect()
+		}
+		clientPromise = global._mongoClientPromise
+	} else {
+		// В продакшене создаем новый клиент
+		client = new MongoClient(uri, options)
+		clientPromise = client.connect()
+	}
+
 	const method = req.method
 
 	// Compute current time in UTC+5
@@ -9,28 +34,79 @@ export default async function handler(req, res) {
 	const local = new Date(now.getTime() + 5 * 60 * 60 * 1000)
 	const today = local.toISOString().slice(0, 10)
 
-	if (method === 'GET') {
-		const visible = db.groups.filter(g => {
-			const groupDate = g.date || today
-			if (groupDate !== today) return false
-			return true
-			// const [h, m] = (g.time || '00:00').split(':').map(Number)
-			// const groupTime = new Date(local)
-			// groupTime.setHours(h, m, 0, 0)
-			// return groupTime > local
+	try {
+		db = await getDatabase(clientPromise)
+		collection = db.collection('groups')
+		console.log(collection);
+		res.status(200).json([])
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: 'Error fetching users'
 		})
-		db.groups = visible
-		writeJSON(db)
-		return new Promise(res => res(visible))
+	}
+
+	if (method === 'GET') {
+		// const visible = db.groups.filter(g => {
+		// 	const groupDate = g.date || today
+		// 	if (groupDate !== today) return false
+		// 	return true
+		// 	const [h, m] = (g.time || '00:00').split(':').map(Number)
+		// 	const groupTime = new Date(local)
+		// 	groupTime.setHours(h, m, 0, 0)
+		// 	return groupTime > local
+		// })
+		// db.groups = visible
+		// writeJSON(db)
+		console.log('--');
+		console.log(db);
+		console.log('--');
+		
+		
+
+		// try {
+		// 	const db = await getDatabase(clientPromise)
+		// 	const collection = db.collection('groups')
+		// 	console.log(collection);
+
+
+		// 	const groups = await collection.find({}).toArray()
+		// 	console.log(groups);
+
+
+
+		// 	res.status(200).json([])
+		// } catch (error) {
+		// 	res.status(500).json({
+		// 		success: false,
+		// 		message: 'Error fetching users'
+		// 	})
+		// }
+
+		const visible = {}
+		return new Promise(resolve => resolve([]))
 	}
 
 	if (method === 'POST') {
 		const { name, time } = req.body
-		const todayStr = today
 		const id = (Date.now()).toString()
-		db.groups.push({ id, name, time, date: todayStr })
-		writeJSON(db)
-		return res.status(201).json({ id, name, time, date: todayStr })
+		const group = { id, name, time, date: today }
+
+		try {
+			const result = await collection.insertOne(group)
+			res.status(201).json({
+				success: true,
+				insertedId: result.insertedId,
+				message: 'Created successfully'
+			})
+		} catch (error) {
+			res.status(500).json({
+				success: false,
+				message: 'Error creating',
+				error: error.message
+			})
+		}
+		return res.status(201).json(group)
 	}
 
 	if (method === 'PUT') {
@@ -54,12 +130,8 @@ export default async function handler(req, res) {
 	res.status(405).end('Method not allowed')
 }
 
-const getJSON = async () => {
-	const { blobs } = await list()
-	const res = await fetch(blobs[0].url)
-	return await res.json()
-}
-
-const writeJSON = (obj) => {
-	put('danceapp/db.json', JSON.stringify(obj), { access: 'public', allowOverwrite: true })
+const getDatabase = async (clientPromise) => {
+	const client = await clientPromise
+	const db = client.db(process.env.MONGODB_DB)
+	return { client, db }
 }

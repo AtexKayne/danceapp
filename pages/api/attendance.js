@@ -1,15 +1,18 @@
 import { nanoid } from 'nanoid'
-import { put, list } from "@vercel/blob"
+import { get } from '@vercel/edge-config';
 
 export default async function handler(req, res) {
-	const db = await getJSON()
+	const db = {}
 	const method = req.method
 	const today = new Date().toISOString().slice(0, 10)
 
 	if (method === 'GET') {
-		const visible = db.attendances.filter(a => a.dateISO === today)
-		db.attendances = visible
-		writeJSON(db)
+		const attendances = await get('attendances');
+		console.log(attendances);
+		
+		// const visible = attendances.filter(a => a.dateISO === today)
+		// db.attendances = visible
+		// writeJSON(db)
 		return new Promise(res => res(db))
 	}
 

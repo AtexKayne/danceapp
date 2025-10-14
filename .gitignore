@@ -2,3 +2,5 @@
 /.next
 /.vscode
 /.env
+.vercel
+.env*.local
