@@ -16,10 +16,30 @@ body[data-load="true"] {
     pointer-events: none;
 }
 
-input[type="text"],
 select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
     width: 100%;
     display: block;
+    outline: none;
+    min-height: 33px;
+    margin-top: 9px;
+    padding: 8px 40px 8px 16px;
+    border-radius: 4px;
+    opacity: 1;
+    border: 1px solid lightgray;
+    background-color: white;
+}
+
+input[type="text"] {
+    width: 100%;
+    display: block;
+    min-height: 33px;
     margin-top: 9px;
     padding: 8px 16px;
     border-radius: 4px;
