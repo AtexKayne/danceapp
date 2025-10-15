@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { fetchData } from '../lib/db'
+import Head from 'next/head'
 
 export default function Admin() {
     const [pw, setPw] = useState('')
@@ -101,47 +102,57 @@ export default function Admin() {
     }
 
     return (
-        <main className="container">
-            <h1>Админка</h1>
-            {!auth ? (
-                <div>
-                    <input type="password" value={pw} onChange={e => setPw(e.target.value)} />
-                    <button onClick={login}>Войти</button>
-                </div>
-            ) : (
-                <div>
-                    <Link href='/'>На главную</Link>
-                    <section>
-                        <h2>Группы</h2>
-                        <div className="group-items">
-                            <div className="group-items__item">
-                                <input type="text" placeholder="Название" value={newGroup.name} onChange={e => setNewGroup({ ...newGroup, name: e.target.value.trim() })} />
-                                <input type="hidden" placeholder="Время" value={newGroup.time} onChange={e => setNewGroup({ ...newGroup, time: e.target.value })} />
-                                <button disabled={!newGroup.name} onClick={addGroup}>Добавить</button>
-                            </div>
-                        </div>
-                        <br />
-                        <ul className="group-items">
-                            {groups.map(g => (
-                                <li className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
-                                    <input type="text" defaultValue={g.name} onBlur={e => editGroup(g.id, e.target.value, g.time)} />
-                                    <input type="hidden" defaultValue={g.time} onBlur={e => editGroup(g.id, g.name, e.target.value)} />
-                                    <button onClick={() => deleteGroup(g.id)}>Удалить</button>
-                                </li>
-                            ))}
-                        </ul>
-                    </section>
+        <>
+            <Head>
+                <title>Админка | Algorithm</title>
+                <meta name="description" content="Записаться на занятие в танцевальной студии Algorithm" />
+                <meta property="og:title" content="Админка | Algorithm" />
+                <meta name="twitter:title" content="Админка | Algorithm" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-                    <section style={{ marginTop: 20 }}>
-                        <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
-                            <span>Списки участников</span>
-                            <button className="btn btn--inline" onClick={initData}>Обновить</button>
-                        </h2>
-                        <RegisteredUsers att={att} removeAttendance={removeAttendance} />
-                    </section>
-                </div>
-            )}
-        </main>
+            </Head>
+            <main className="container">
+                <h1>Админка</h1>
+                {!auth ? (
+                    <div>
+                        <input type="password" value={pw} onChange={e => setPw(e.target.value)} />
+                        <button onClick={login}>Войти</button>
+                    </div>
+                ) : (
+                    <div>
+                        <Link href='/'>На главную</Link>
+                        <section>
+                            <h2>Группы</h2>
+                            <div className="group-items">
+                                <div className="group-items__item">
+                                    <input type="text" placeholder="Название" value={newGroup.name} onChange={e => setNewGroup({ ...newGroup, name: e.target.value.trim() })} />
+                                    <input type="hidden" placeholder="Время" value={newGroup.time} onChange={e => setNewGroup({ ...newGroup, time: e.target.value })} />
+                                    <button disabled={!newGroup.name} onClick={addGroup}>Добавить</button>
+                                </div>
+                            </div>
+                            <br />
+                            <ul className="group-items">
+                                {groups.map(g => (
+                                    <li className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
+                                        <input type="text" defaultValue={g.name} onBlur={e => editGroup(g.id, e.target.value, g.time)} />
+                                        <input type="hidden" defaultValue={g.time} onBlur={e => editGroup(g.id, g.name, e.target.value)} />
+                                        <button onClick={() => deleteGroup(g.id)}>Удалить</button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+
+                        <section style={{ marginTop: 20 }}>
+                            <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
+                                <span>Списки участников</span>
+                                <button className="btn btn--inline" onClick={initData}>Обновить</button>
+                            </h2>
+                            <RegisteredUsers att={att} removeAttendance={removeAttendance} />
+                        </section>
+                    </div>
+                )}
+            </main>
+        </>
     )
 }
 

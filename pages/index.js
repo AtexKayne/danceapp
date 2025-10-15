@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Head from 'next/head'
 import { useEffect, useState } from 'react'
 import { fetchData } from '../lib/db'
 
@@ -96,58 +97,67 @@ export default function Home() {
 	}
 
 	return (
-		<main className="container">
-			<h1>Запись на занятие</h1>
-			{isAdmin && <Link href='/admin'>В админку</Link>}
-			<div className='row'>
-				<div className='col'>
-					<h2>Профиль</h2>
-					<div>
-						<input style={{marginTop: '0'}} type="text" placeholder="Имя *" value={user.firstName} onChange={setName} />
+		<>
+			<Head>
+				<title>Запись на занятие | Algorithm</title>
+                {/* <link rel="icon" href="/favicon.ico" sizes="any" /> */}
+				<meta name="description" content="Записаться на занятие в танцевальной студии Algorithm" />
+				<meta property="og:title" content="Запись на занятие | Algorithm" />
+				<meta name="twitter:title" content="Запись на занятие | Algorithm" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+			</Head>
+			<main className="container">
+				<h1>Запись на занятие</h1>
+				{isAdmin && <Link href='/admin'>В админку</Link>}
+				<div className='row'>
+					<div className='col'>
+						<h2>Профиль</h2>
+						<div>
+							<input style={{ marginTop: '0' }} type="text" placeholder="Имя *" value={user.firstName} onChange={setName} />
+						</div>
+						<div>
+							<input type="text" placeholder="Фамилия" value={user.lastName} onChange={e => setUser({ ...user, lastName: e.target.value })} />
+						</div>
+						<div>
+							<select value={user.gender} onChange={e => setUser({ ...user, gender: e.target.value })}>
+								<option value="female">Партнёрша</option>
+								<option value="male">Партнёр</option>
+							</select>
+						</div>
+						<div>
+							<label>
+								<input type="checkbox" checked={user.isSupport || false} onChange={e => setUser({ ...user, isSupport: e.target.checked })} />
+								<span>Я - саппорт</span>
+							</label>
+						</div>
 					</div>
-					<div>
-						<input type="text" placeholder="Фамилия" value={user.lastName} onChange={e => setUser({ ...user, lastName: e.target.value })} />
-					</div>
-					<div>
-						<select value={user.gender} onChange={e => setUser({ ...user, gender: e.target.value })}>
-							<option value="female">Партнёрша</option>
-							<option value="male">Партнёр</option>
-						</select>
-					</div>
-					<div>
-						<label>
-							<input type="checkbox" checked={user.isSupport || false} onChange={e => setUser({ ...user, isSupport: e.target.checked })} />
-							<span>Я - саппорт</span>
-						</label>
+					<div className='col'>
+						<h2>Группы (сегодня)</h2>
+						{!groups.length && <div>Сегодня нет групп</div>}
+						{groups.map(g => {
+							const count = counts[g.id] ?? { male: 0, female: 0, supports: 0 }
+							const countRU = `Партнеров: ${(count.male - count.sMale) || 0} ${count.sMale ? `(+${count.sMale} саппорт)` : ''} | Партнерш: ${(count.female - count.sFemale) || 0} ${count.sFemale ? `(+${count.sFemale} саппорт)` : ''}`
+							return (
+								<div className="card" key={g.id}>
+									<div><strong>{g.name}</strong></div>
+									<div>{countRU}</div>
+									{
+										registeredFor[g.id]
+											? (
+												<div style={{ marginTop: '12px' }}>
+													<div> Я {registeredFor[g.id].firstName} {registeredFor[g.id].lastName} приду на занятие в качестве {registeredFor[g.id].isSupport ? 'саппорта' : 'ученика'} </div>
+													<button onClick={() => cancel(g.id, registeredFor[g.id].id)}>Я не смогу (отменить запись)</button>
+												</div>
+											)
+											: <button disabled={!user.firstName || registereDisabled.includes(g.id)} onClick={() => register(g)}>Я пойду (отметиться)</button>
+									}
+								</div>
+							)
+						})}
 					</div>
 				</div>
-				<div className='col'>
-					<h2>Группы (сегодня)</h2>
-					{!groups.length && <div>Сегодня нет групп</div>}
-					{groups.map(g => {
-						const count = counts[g.id] ?? { male: 0, female: 0, supports: 0 }
-						const countRU = `Партнеров: ${(count.male - count.sMale) || 0} ${count.sMale ? `(+${count.sMale} саппорт)` : ''} | Партнерш: ${(count.female - count.sFemale) || 0} ${count.sFemale ? `(+${count.sFemale} саппорт)` : ''}`
-						return (
-							<div className="card" key={g.id}>
-								<div><strong>{g.name}</strong></div>
-								<div>{countRU}</div>
-								{
-									registeredFor[g.id]
-										? (
-											<div style={{ marginTop: '12px' }}>
-												<div> Я {registeredFor[g.id].firstName} {registeredFor[g.id].lastName} приду на занятие в качестве {registeredFor[g.id].isSupport ? 'саппорта' : 'ученика'} </div>
-												<button onClick={() => cancel(g.id, registeredFor[g.id].id)}>Я не смогу (отменить запись)</button>
-											</div>
-										)
-										: <button disabled={!user.firstName || registereDisabled.includes(g.id)} onClick={() => register(g)}>Я пойду (отметиться)</button>
-								}
-							</div>
-						)
-					})}
-				</div>
-			</div>
 
-			{/* <div className='row'>
+				{/* <div className='row'>
 				<div className='col'></div>
 				<div className='col'>
 					<div style={{ marginTop: 20 }}>
@@ -156,7 +166,8 @@ export default function Home() {
 					</div>
 				</div>
 			</div> */}
-		</main>
+			</main>
+		</>
 	)
 }
 
