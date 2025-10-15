@@ -19,7 +19,7 @@ body[data-load="true"] {
 input[type="text"],
 select {
     width: 100%;
-    margin: 4px;
+    margin-top: 9px;
     padding: 8px 16px;
     border-radius: 4px;
     border: 1px solid lightgray;
@@ -39,7 +39,7 @@ button {
 }
 
 label {
-    padding: 8px 0;
+    padding: 12px 0;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -64,7 +64,7 @@ input[type="checkbox"] {
 .card {
     border: 1px solid #ddd;
     padding: 12px;
-    margin: 8px;
+    margin-top: 8px;
 }
 
 .card button {
@@ -75,24 +75,41 @@ input[type="checkbox"] {
 .group-items {
     list-style: none;
     padding: 0;
-    max-width: 450px;
+    max-width: 469px;
 }
 .group-items__item {
     padding-left: 0px;
     display: flex;
     gap: 8px;
 }
+
+.group-items__item input {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
 .group-items button {
     min-width: 93px;
 }
 
 .att-list {
     margin: 16px 0 12px 0;
-    padding-left: 20px;
+    padding-left: 0px;
 }
 
 .att-list__item {
+    display: flex;
+    margin: 0;
+    border-bottom: 1px dotted lightgray;
+    padding: 0 0 8px;
+    justify-content: space-between;
+    align-items: center;
     margin-top: 8px;
+}
+
+.att-list__item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 .btn.btn--inline {
@@ -104,7 +121,7 @@ input[type="checkbox"] {
 
 @media screen and (min-width: 992px) {
     .container {
-        max-width: 1200px;
+        max-width: 900px;
         margin: 0 auto;
         padding: 20px;
     }

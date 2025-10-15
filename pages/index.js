@@ -103,7 +103,7 @@ export default function Home() {
 				<div className='col'>
 					<h2>Профиль</h2>
 					<div>
-						<input type="text" placeholder="Имя *" value={user.firstName} onChange={setName} />
+						<input style={{marginTop: '0'}} type="text" placeholder="Имя *" value={user.firstName} onChange={setName} />
 					</div>
 					<div>
 						<input type="text" placeholder="Фамилия" value={user.lastName} onChange={e => setUser({ ...user, lastName: e.target.value })} />

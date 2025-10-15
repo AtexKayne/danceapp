@@ -133,8 +133,10 @@ export default function Admin() {
                     </section>
 
                     <section style={{ marginTop: 20 }}>
-                        <h2 style={{display: 'inline-block'}}>Списки участников (сегодня)</h2>
-                        <button className="btn btn--inline" onClick={initData}>Обновить</button>
+                        <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
+                            <span>Списки участников</span>
+                            <button className="btn btn--inline" onClick={initData}>Обновить</button>
+                        </h2>
                         <RegisteredUsers att={att} removeAttendance={removeAttendance} />
                     </section>
                 </div>
