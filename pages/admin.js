@@ -147,21 +147,37 @@ export default function Admin() {
 
 
 const RegisteredUsers = ({ att, removeAttendance }) => {
+    const [selectedGroup, setSelectedGroup] = useState('all')
+
     const keys = Object.keys(att)
     if (!keys.length) return <div>Нет записей</div>
 
-    return keys.map(key => {
-        const data = att[key]
-        return (
-            <div key={key} className="card">
-                <b>Группа: {data[0].groupName}</b>
-                <RegisteredUser data={data} removeAttendance={removeAttendance} />
-                {/* <div>{a.firstName} {a.lastName} — {a.gender} {a.isSupport ? '(support)' : ''}</div>
-                <div>Группа: {a.groupName}</div>
-                <button onClick={() => removeAttendance(a.id)}>Отменить</button> */}
+    return (
+        <div className="group-list">
+            <div className="group-list__select">
+                <select value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)}>
+                    <option value="all">Все</option>
+                    {keys.map(key => (
+                        <option key={key} value={key}>{att[key][0].groupName}</option>
+                    ))}
+                </select>
             </div>
-        )
-    })
+            {
+                keys.map(key => {
+                    const data = att[key]
+                    return (
+                        <div key={key} data-active={selectedGroup.includes(key) || selectedGroup === 'all'} className="card group-list__item">
+                            <b>Группа: {data[0].groupName}</b>
+                            <RegisteredUser data={data} removeAttendance={removeAttendance} />
+                            {/* <div>{a.firstName} {a.lastName} — {a.gender} {a.isSupport ? '(support)' : ''}</div>
+                            <div>Группа: {a.groupName}</div>
+                            <button onClick={() => removeAttendance(a.id)}>Отменить</button> */}
+                        </div>
+                    )
+                })
+            }
+        </div>
+    )
 }
 
 const RegisteredUser = ({ data, removeAttendance }) => {

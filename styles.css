@@ -112,6 +112,26 @@ input[type="checkbox"] {
     padding-bottom: 0;
 }
 
+.group-list {
+    margin-top: -22px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.group-list__item {
+    width: 100%;
+    display: none;
+}
+
+.group-list__item[data-active="true"] {
+    display: block;
+}
+
+.group-list__select select {
+    min-width: 200px;
+}
+
 .btn.btn--inline {
     width: auto;
     margin: 0;
@@ -120,6 +140,9 @@ input[type="checkbox"] {
 }
 
 @media screen and (min-width: 992px) {
+    .group-list {
+        margin-top: -60px;
+    }
     .container {
         max-width: 900px;
         margin: 0 auto;
