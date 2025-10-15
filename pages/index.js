@@ -103,7 +103,6 @@ export default function Home() {
 				<meta name="description" content="Записаться на занятие в танцевальной студии Algorithm" />
 				<meta property="og:title" content="Запись на занятие | Algorithm" />
 				<meta name="twitter:title" content="Запись на занятие | Algorithm" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
 			</Head>
 			<main className="container">
 				<h1>Запись на занятие</h1>
@@ -119,14 +118,14 @@ export default function Home() {
 						</div>
 						<div>
 							<select value={user.gender} onChange={e => setUser({ ...user, gender: e.target.value })}>
-								<option value="female">Партнёрша</option>
-								<option value="male">Партнёр</option>
+								<option value="female">Я партнёрша</option>
+								<option value="male">Я партнёр</option>
 							</select>
 						</div>
 						<div>
 							<label>
 								<input type="checkbox" checked={user.isSupport || false} onChange={e => setUser({ ...user, isSupport: e.target.checked })} />
-								<span>Я - саппорт</span>
+								<span>Саппорт</span>
 							</label>
 						</div>
 					</div>

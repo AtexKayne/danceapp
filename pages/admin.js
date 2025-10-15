@@ -108,8 +108,6 @@ export default function Admin() {
                 <meta name="description" content="Записаться на занятие в танцевальной студии Algorithm" />
                 <meta property="og:title" content="Админка | Algorithm" />
                 <meta name="twitter:title" content="Админка | Algorithm" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-
             </Head>
             <main className="container">
                 <h1>Админка</h1>

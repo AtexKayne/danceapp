@@ -19,6 +19,7 @@ body[data-load="true"] {
 input[type="text"],
 select {
     width: 100%;
+    display: block;
     margin-top: 9px;
     padding: 8px 16px;
     border-radius: 4px;
