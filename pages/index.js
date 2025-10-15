@@ -100,7 +100,6 @@ export default function Home() {
 		<>
 			<Head>
 				<title>Запись на занятие | Algorithm</title>
-                {/* <link rel="icon" href="/favicon.ico" sizes="any" /> */}
 				<meta name="description" content="Записаться на занятие в танцевальной студии Algorithm" />
 				<meta property="og:title" content="Запись на занятие | Algorithm" />
 				<meta name="twitter:title" content="Запись на занятие | Algorithm" />

@@ -1,7 +1,7 @@
 {
-    "name": "Мое Next.js PWA",
-    "short_name": "MyApp",
-    "description": "Описание моего приложения",
+    "name": "Запись на занятие | Algorithm",
+    "short_name": "Algorithm",
+    "description": "Записаться на занятие в танцевальной студии Algorithm",
     "theme_color": "#000000",
     "background_color": "#ffffff",
     "display": "standalone",
@@ -18,13 +18,13 @@
             "type": "image/png"
         },
         {
-            "src": "/icon-maskable-192x192.png",
+            "src": "/icon-192x192.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "maskable"
         },
         {
-            "src": "/icon-maskable-512x512.png",
+            "src": "/icon-512x512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
