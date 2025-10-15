@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { fetchData } from '../lib/db'
 
 export default function Admin() {
     const [pw, setPw] = useState('')
@@ -23,10 +24,10 @@ export default function Admin() {
     }
 
     const initData = async () => {
-        const r1 = await fetch('/api/groups');
+        const r1 = await fetchData('/api/groups');
         const gs = await r1.json()
 
-        const r2 = await fetch('/api/attendance');
+        const r2 = await fetchData('/api/attendance');
         const as = await r2.json()
         const upd = {}
         as.forEach(a => {
@@ -51,7 +52,7 @@ export default function Admin() {
     }
 
     async function login() {
-        const res = await fetch('/api/admin/check?pw=' + encodeURIComponent(pw))
+        const res = await fetchData('/api/admin/check?pw=' + encodeURIComponent(pw))
         if (res.ok) {
             localStorage.setItem('isAdmin', 'true')
             setAuth(true)
@@ -61,7 +62,7 @@ export default function Admin() {
     }
 
     async function addGroup() {
-        await fetch('/api/groups', {
+        await fetchData('/api/groups', {
             method: 'POST',
             headers:
             {
@@ -77,14 +78,14 @@ export default function Admin() {
     }
 
     async function deleteGroup(id) {
-        await fetch('/api/groups?id=' + id, {
+        await fetchData('/api/groups?id=' + id, {
             method: 'DELETE'
         });
         initData()
     }
 
     async function editGroup(id, name, time) {
-        await fetch('/api/groups', {
+        await fetchData('/api/groups', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -95,7 +96,7 @@ export default function Admin() {
     }
 
     async function removeAttendance(id) {
-        await fetch('/api/attendance?id=' + id, { method: 'DELETE' });
+        await fetchData('/api/attendance?id=' + id, { method: 'DELETE' });
         initData()
     }
 
@@ -115,7 +116,7 @@ export default function Admin() {
                         <div className="group-items">
                             <div className="group-items__item">
                                 <input type="text" placeholder="Название" value={newGroup.name} onChange={e => setNewGroup({ ...newGroup, name: e.target.value.trim() })} />
-                                <input type="time" placeholder="Время" value={newGroup.time} onChange={e => setNewGroup({ ...newGroup, time: e.target.value })} />
+                                <input type="hidden" placeholder="Время" value={newGroup.time} onChange={e => setNewGroup({ ...newGroup, time: e.target.value })} />
                                 <button disabled={!newGroup.name} onClick={addGroup}>Добавить</button>
                             </div>
                         </div>
@@ -124,7 +125,7 @@ export default function Admin() {
                             {groups.map(g => (
                                 <li className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
                                     <input type="text" defaultValue={g.name} onBlur={e => editGroup(g.id, e.target.value, g.time)} />
-                                    <input type="time" defaultValue={g.time} onBlur={e => editGroup(g.id, g.name, e.target.value)} />
+                                    <input type="hidden" defaultValue={g.time} onBlur={e => editGroup(g.id, g.name, e.target.value)} />
                                     <button onClick={() => deleteGroup(g.id)}>Удалить</button>
                                 </li>
                             ))}
@@ -132,8 +133,8 @@ export default function Admin() {
                     </section>
 
                     <section style={{ marginTop: 20 }}>
-                        <h2>Списки участников (сегодня)</h2>
-                        <button onClick={initData}>Обновить</button>
+                        <h2 style={{display: 'inline-block'}}>Списки участников (сегодня)</h2>
+                        <button className="btn btn--inline" onClick={initData}>Обновить</button>
                         <RegisteredUsers att={att} removeAttendance={removeAttendance} />
                     </section>
                 </div>
@@ -191,7 +192,7 @@ const RegisteredUser = ({ data, removeAttendance }) => {
                         <li className="att-list__item" key={a.id}>
                             <span>{a.gender === 'male' ? 'М' : 'Ж'}: {a.firstName} {a.lastName} {a.isSupport ? '(саппорт)' : ''}</span>
 
-                            {/* <button onClick={() => removeAttendance(a.id)}>Отменить</button> */}
+                            <button className="btn btn--inline" onClick={() => removeAttendance(a.id)}>Отменить</button>
                         </li>
                     )
                 })}

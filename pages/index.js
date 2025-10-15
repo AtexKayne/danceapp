@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { fetchData } from '../lib/db'
 
 export default function Home() {
 	const [groups, setGroups] = useState([])
@@ -10,7 +11,7 @@ export default function Home() {
 	const [isAdmin, setIsAdmin] = useState(false)
 
 	useEffect(() => {
-		fetch('/api/groups').then(r => r.json()).then(setGroups)
+		fetchData('/api/groups').then(r => r.json()).then(setGroups)
 		const saved = localStorage.getItem('user')
 		if (saved) {
 			const u = JSON.parse(saved)
@@ -35,7 +36,13 @@ export default function Home() {
 
 	async function register(group) {
 		const body = { groupId: group.id, firstName: user.firstName, lastName: user.lastName, gender: user.gender, isSupport: user.isSupport || false }
-		const res = await fetch('/api/attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+		const res = await fetchData('/api/attendance', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(body)
+		})
 		if (res.ok) {
 			const rec = await res.json()
 			const currentGroups = JSON.parse(localStorage.getItem('groups') || '{}')
@@ -51,7 +58,9 @@ export default function Home() {
 	}
 
 	async function cancel(groupId, id) {
-		const res = await fetch('/api/attendance?id=' + encodeURIComponent(id), { method: 'DELETE' })
+		const res = await fetchData('/api/attendance?id=' + encodeURIComponent(id), {
+			method: 'DELETE'
+		})
 		if (res.ok) {
 			const currentGroups = JSON.parse(localStorage.getItem('groups') || '{}')
 			delete currentGroups[groupId]
@@ -113,19 +122,19 @@ export default function Home() {
 					</div>
 				</div>
 				<div className='col'>
-					<h2>Доступные группы (сегодня)</h2>
+					<h2>Группы (сегодня)</h2>
 					{!groups.length && <div>Сегодня нет групп</div>}
 					{groups.map(g => {
 						const count = counts[g.id] ?? { male: 0, female: 0, supports: 0 }
 						const countRU = `Партнеров: ${(count.male - count.sMale) || 0} ${count.sMale ? `(+${count.sMale} саппорт)` : ''} | Партнерш: ${(count.female - count.sFemale) || 0} ${count.sFemale ? `(+${count.sFemale} саппорт)` : ''}`
 						return (
 							<div className="card" key={g.id}>
-								<div><strong>{g.name}</strong> - {g.time}</div>
+								<div><strong>{g.name}</strong></div>
 								<div>{countRU}</div>
 								{
 									registeredFor[g.id]
 										? (
-											<div style={{marginTop: '12px'}}>
+											<div style={{ marginTop: '12px' }}>
 												<div> Я {registeredFor[g.id].firstName} {registeredFor[g.id].lastName} приду на занятие в качестве {registeredFor[g.id].isSupport ? 'саппорта' : 'ученика'} </div>
 												<button onClick={() => cancel(g.id, registeredFor[g.id].id)}>Я не смогу (отменить запись)</button>
 											</div>

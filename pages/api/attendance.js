@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { getData, updateData } from '../../lib/db'
 
 export default async function handler(req, res) {
 	const db = await getData()
@@ -7,8 +8,10 @@ export default async function handler(req, res) {
 
 	if (method === 'GET') {
 		const visible = db.attendances ? db.attendances.filter(a => a.dateISO === today) : []
-		db.attendances = visible
-		updateData(db)
+		if (db.attendances.lenght !== visible.length) {
+			db.attendances = visible
+			await updateData(db)
+		}
 		return res.json(visible)
 	}
 
@@ -66,46 +69,3 @@ export default async function handler(req, res) {
 	}
 }
 
-
-async function getData() {
-	try {
-		const response = await fetch('http://s1qwmailr2.temp.swtest.ru/', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			}
-		});
-
-		if (!response.ok) {
-			throw new Error('Network response was not ok');
-		}
-
-		const data = await response.json();
-		return data;
-	} catch (error) {
-		console.error('Error:', error);
-	}
-}
-
-async function updateData(newData) {
-	try {
-		const response = await fetch('http://s1qwmailr2.temp.swtest.ru/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(newData)
-		});
-		console.log(response);
-
-
-		if (!response.ok) {
-			throw new Error('Network response was not ok');
-		}
-
-		const result = await response.json();
-		return result;
-	} catch (error) {
-		console.error('Error:', error);
-	}
-}

@@ -1,3 +1,5 @@
+import { getData, updateData } from '../../lib/db'
+
 export default async function handler(req, res) {
 	const db = await getData()
 	const method = req.method
@@ -17,8 +19,12 @@ export default async function handler(req, res) {
 			// groupTime.setHours(h, m, 0, 0)
 			// return groupTime > local
 		})
-		db.groups = visible
-		updateData(db)
+
+		if (db.groups.lenght !== visible.length) {
+			db.groups = visible
+			await updateData(db)
+		}
+
 		return res.json(visible)
 	}
 
@@ -50,47 +56,4 @@ export default async function handler(req, res) {
 
 	res.setHeader('Allow', 'GET,POST,PUT,DELETE')
 	res.status(405).end('Method not allowed')
-}
-
-async function getData() {
-	try {
-		const response = await fetch('http://s1qwmailr2.temp.swtest.ru/', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			}
-		});
-
-		if (!response.ok) {
-			throw new Error('Network response was not ok');
-		}
-
-		const data = await response.json();
-		return data;
-	} catch (error) {
-		console.error('Error:', error);
-	}
-}
-
-async function updateData(newData) {
-	try {
-		const response = await fetch('http://s1qwmailr2.temp.swtest.ru/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(newData)
-		});
-		console.log(response);
-		
-
-		if (!response.ok) {
-			throw new Error('Network response was not ok');
-		}
-
-		const result = await response.json();
-		return result;
-	} catch (error) {
-		console.error('Error:', error);
-	}
 }
