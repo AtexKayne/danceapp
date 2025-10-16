@@ -56,7 +56,12 @@ button {
     margin: 4px;
     padding: 8px 16px;
     border-radius: 4px;
+    background-color: #efefef;
     border: 1px solid lightgray;
+}
+
+button[disabled] {
+    background-color: #fafafa;
 }
 
 label {
@@ -71,7 +76,7 @@ input[type="checkbox"] {
 }
 
 .container {
-    padding: 20px 12px;
+    padding: 0px 12px 56px 12px;
 }
 
 .row {
@@ -160,14 +165,58 @@ input[type="checkbox"] {
     display: inline-block;
 }
 
+.shedule {
+    width: 100%;
+}
+
+.shedule__tabs {
+    display: flex;
+    gap: 6px;
+}
+
+.shedule__tabs > * {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    line-height: 1em;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: 700;
+    background-color: #efefef;
+    border-radius: 4px;
+    transition: 0.3s;
+    text-transform: uppercase;
+}
+
+.shedule__tabs > *[data-active="true"] {
+    pointer-events: none;
+    background-color: #fafafa;
+}
+
+.shedule__item {
+    margin-top: 20px;
+    display: none;
+}
+
+.shedule__item[data-active="true"] {
+    display: block;
+}
+
+.shedule__item .group-items {
+    margin-bottom: 0;
+}
+
 @media screen and (min-width: 992px) {
     .group-list {
         margin-top: -60px;
     }
     .container {
-        max-width: 900px;
+        max-width: 990px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 20px 20px 56px 20px;
     }
 
     .row {

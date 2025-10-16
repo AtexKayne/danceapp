@@ -5,9 +5,10 @@ import Head from 'next/head'
 
 export default function Admin() {
     const [pw, setPw] = useState('')
+    const [att, setAtt] = useState([])
     const [auth, setAuth] = useState(false)
     const [groups, setGroups] = useState([])
-    const [att, setAtt] = useState([])
+    const [shedule, setShedule] = useState({})
     const [newGroup, setNewGroup] = useState({ name: '', time: '17:00' })
 
     useEffect(() => {
@@ -25,11 +26,16 @@ export default function Admin() {
     }
 
     const initData = async () => {
-        const r1 = await fetchData('/api/groups');
-        const gs = await r1.json()
+        const r1 = await fetchData('/api/shedule');
+        const ss = await r1.json()
 
-        const r2 = await fetchData('/api/attendance');
-        const as = await r2.json()
+        const r2 = await fetchData('/api/groups');
+        const gs = await r2.json()
+
+        const r3 = await fetchData('/api/attendance');
+        const as = await r3.json()
+
+
         const upd = {}
         as.forEach(a => {
             const thisGroup = gs.filter(g => a.groupId === g.id)[0]
@@ -48,6 +54,7 @@ export default function Admin() {
             }
         })
 
+        setShedule(ss)
         setGroups(gs)
         setAtt(upd)
     }
@@ -117,43 +124,55 @@ export default function Admin() {
                         <button onClick={login}>Войти</button>
                     </div>
                 ) : (
-                    <div>
+                    <>
                         <Link href='/'>На главную</Link>
-                        <section>
-                            <h2>Группы</h2>
-                            <div className="group-items">
-                                <div className="group-items__item">
-                                    <input type="text" placeholder="Название" value={newGroup.name} onChange={e => setNewGroup({ ...newGroup, name: e.target.value.trim() })} />
-                                    <input type="hidden" placeholder="Время" value={newGroup.time} onChange={e => setNewGroup({ ...newGroup, time: e.target.value })} />
-                                    <button disabled={!newGroup.name} onClick={addGroup}>Добавить</button>
-                                </div>
-                            </div>
-                            <br />
-                            <ul className="group-items">
-                                {groups.map(g => (
-                                    <li className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
-                                        <input type="text" defaultValue={g.name} onBlur={e => editGroup(g.id, e.target.value, g.time)} />
-                                        <input type="hidden" defaultValue={g.time} onBlur={e => editGroup(g.id, g.name, e.target.value)} />
-                                        <button onClick={() => deleteGroup(g.id)}>Удалить</button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
+                        <div className="row">
+                            <div className="col">
+                                <section>
+                                    <h2>Группы</h2>
+                                    <div className="group-items">
+                                        <div className="group-items__item">
+                                            <input type="text" placeholder="Название" value={newGroup.name} onChange={e => setNewGroup({ ...newGroup, name: e.target.value.trim() })} />
+                                            <input type="hidden" placeholder="Время" value={newGroup.time} onChange={e => setNewGroup({ ...newGroup, time: e.target.value })} />
+                                            <button disabled={!newGroup.name} onClick={addGroup}>Добавить</button>
+                                        </div>
+                                    </div>
+                                    <h2>Сегодня проходят</h2>
+                                    {groups && groups.length ? (
+                                        <ul className="group-items">
+                                            {groups.map(g => (
+                                                <li className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
+                                                    <input type="text" defaultValue={g.name} onBlur={e => editGroup(g.id, e.target.value, g.time)} />
+                                                    <input type="hidden" defaultValue={g.time} onBlur={e => editGroup(g.id, g.name, e.target.value)} />
+                                                    <button onClick={() => deleteGroup(g.id)}>Удалить</button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <div>Не проходят</div>
+                                    )}
 
-                        <section style={{ marginTop: 20 }}>
-                            <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
-                                <span>Списки участников</span>
-                                <button className="btn btn--inline" onClick={initData}>Обновить</button>
-                            </h2>
-                            <RegisteredUsers att={att} removeAttendance={removeAttendance} />
-                        </section>
-                    </div>
+                                </section>
+
+                                <section style={{ marginTop: 20 }}>
+                                    <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
+                                        <span>Списки участников</span>
+                                        <button className="btn btn--inline" onClick={initData}>Обновить</button>
+                                    </h2>
+                                    <RegisteredUsers att={att} removeAttendance={removeAttendance} />
+                                </section>
+                            </div>
+                            <div className="col">
+                                <h2>Расписание</h2>
+                                <SheduleComponent shedule={shedule} setShedule={setShedule} initData={initData} />
+                            </div>
+                        </div>
+                    </>
                 )}
             </main>
         </>
     )
 }
-
 
 const RegisteredUsers = ({ att, removeAttendance }) => {
     const [selectedGroup, setSelectedGroup] = useState('all')
@@ -224,6 +243,142 @@ const RegisteredUser = ({ data, removeAttendance }) => {
                     )
                 })}
             </ol>
+        </div>
+    )
+}
+
+const SheduleComponent = ({ shedule, setShedule, initData }) => {
+    const now = new Date()
+    const currentDay = ['7', '1', '2', '3', '4', '5', '6'][now.getDay()];
+    const [isNewDisabled, setIsNewDisabled] = useState([])
+    const [activeTab, setActiveTab] = useState(currentDay)
+    const changeHandler = event => {
+        const { target } = event
+        const name = target.name
+        const value = target.value.trim()
+        setIsNewDisabled(prev => {
+            const next = [...prev]
+            if (value) {
+                if (!next.includes(name)) next.push(name)
+            } else {
+                const idx = next.findIndex(a => a === name)
+                if (idx + 1) next.splice(idx, 1)
+            }
+            return next
+        })
+    }
+    const weeks = [
+        { i: '1', short: 'пн', name: 'понедельник' },
+        { i: '2', short: 'вт', name: 'вторник' },
+        { i: '3', short: 'ср', name: 'среду' },
+        { i: '4', short: 'чт', name: 'четверг' },
+        { i: '5', short: 'пт', name: 'пятницу' },
+        { i: '6', short: 'сб', name: 'субботу' },
+        { i: '7', short: 'вс', name: 'воскресенье' }
+    ]
+
+    const addGroup = async (event) => {
+        const { target } = event
+        const input = target.previousSibling
+        const value = input.value
+        const day = input.name
+        const isExist = Array.isArray(shedule[day]) && (shedule[day].findIndex(a => a.name.toLowerCase() === value.toLowerCase()) + 1)
+        if (isExist) return alert('Такое название уже есть')
+
+        const newShedule = { ...shedule }
+        if (Array.isArray(shedule[day])) {
+            newShedule[day].push({ name: value, id: (Date.now()).toString(), isActive: true })
+        } else {
+            newShedule[day] = [{ name: value, id: (Date.now()).toString(), isActive: true }]
+        }
+
+        input.value = ''
+
+        await fetchData('/api/shedule', {
+            method: 'POST',
+            headers:
+            {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ shedules: newShedule })
+        })
+
+        setShedule(newShedule)
+    }
+
+    const toggleGroup = async (data) => {
+        await fetchData('/api/shedule', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ...data })
+        });
+        initData()
+    }
+
+    const editHandler = async (event, id) => {
+        const { target } = event
+        const { name, value } = target
+        if (!value) return target.value = target.dataset.default
+        if (value === target.dataset.default) return
+
+        await fetchData('/api/shedule', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, name: value, day: name, isActive: true })
+        });
+        initData()
+    }
+
+    const deleteGroup = async (id) => {
+        await fetchData(`/api/shedule?id=${id}&day=${activeTab}`, {
+            method: 'DELETE'
+        });
+        initData()
+    }
+
+    return (
+        <div className="shedule">
+            <div className="shedule__tabs">
+                {weeks.map(w => (
+                    <div key={w.name} data-active={activeTab === w.i} onClick={() => setActiveTab(w.i)}>
+                        {w.short}
+                    </div>
+                ))}
+            </div>
+            {weeks.map(w => (
+                <div key={w.i} data-active={activeTab === w.i} className="shedule__item">
+                    {/* <div className="shedule__item-name">{w.name}</div> */}
+                    <div className="shedule__item-container">
+                        <div className="group-items">
+                            <div>Группы в {w.name}</div>
+                            <hr/>
+                            <div className="group-items">
+                                <div className="group-items__item">
+                                    <input type="text" name={w.i} placeholder="Название" onChange={changeHandler} />
+                                    <button disabled={!isNewDisabled.includes(w.i)} onClick={addGroup}>Добавить</button>
+                                </div>
+                            </div>
+                            <br />
+                            {shedule[w.i] && shedule[w.i].length ? shedule[w.i].map(g => {
+                                return (
+                                    <div className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
+                                        <input disabled={!g.isActive} type="text" defaultValue={g.name} data-default={g.name} name={w.i} onBlur={(e) => editHandler(e, g.id)} />
+                                        <button onClick={() => deleteGroup(g.id)}>Удалить</button>
+                                        <button onClick={() => toggleGroup({ id: g.id, name: g.name, day: w.i, isActive: !g.isActive })}>
+                                            {g.isActive ? 'Выкл' : 'Вкл'}
+                                        </button>
+                                    </div>
+                                )
+                            }) : <div>Нет групп в {w.name}</div>}
+                        </div>
+                    </div>
+                </div>
+            ))}
+
         </div>
     )
 }
