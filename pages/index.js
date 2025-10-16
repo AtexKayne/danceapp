@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Head from 'next/head'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { fetchData } from '../lib/db'
 
 export default function Home() {
@@ -10,6 +10,7 @@ export default function Home() {
 	const [registereDisabled, setRegisteredDisabled] = useState([])
 	const [counts, setCounts] = useState({})
 	const [isAdmin, setIsAdmin] = useState(false)
+	const refCount = useRef(1)
 
 	useEffect(() => {
 		fetchData('/api/groups').then(r => r.json()).then(setGroups)
@@ -29,7 +30,7 @@ export default function Home() {
 		const es = new EventSource('/api/sse')
 		es.onmessage = e => {
 			try {
-				const msg = JSON.parse(e.data); 
+				const msg = JSON.parse(e.data);
 				refreshCounts()
 			} catch (e) { }
 		}
@@ -101,6 +102,14 @@ export default function Home() {
 		window.location.reload()
 	}
 
+	const getAdmin = () => {
+		refCount.current++
+		if (refCount.current >= 12) {
+			window.location.href = '/admin'
+		}
+		setTimeout(() => refCount.current = 0, 4000)
+	}
+
 	return (
 		<>
 			<Head>
@@ -110,7 +119,7 @@ export default function Home() {
 				<meta name="twitter:title" content="Запись на занятие | Algorithm" />
 			</Head>
 			<main className="container">
-				<h1>Запись на занятие</h1>
+				<h1 onClick={getAdmin}>Запись на занятие</h1>
 				{isAdmin && <Link href='/admin'>В админку</Link>}
 				<div className='row'>
 					<div className='col'>
