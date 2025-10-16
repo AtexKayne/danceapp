@@ -53,7 +53,7 @@ input[type="password"] {
 }
 
 button {
-    margin: 4px;
+    margin: 4px 0;
     padding: 8px 16px;
     border-radius: 4px;
     background-color: #efefef;
@@ -76,7 +76,7 @@ input[type="checkbox"] {
 }
 
 .container {
-    padding: 0px 12px 56px 12px;
+    padding: 0px 16px 56px 16px;
 }
 
 .row {
@@ -95,7 +95,7 @@ input[type="checkbox"] {
 
 .card button {
     width: 100%;
-    margin-top: 16px;
+    margin: 16px 0 0;
 }
 
 .group-items {
@@ -115,7 +115,7 @@ input[type="checkbox"] {
 }
 
 .group-items button {
-    min-width: 93px;
+    flex-shrink: 0;
 }
 
 .att-list {
@@ -210,9 +210,6 @@ input[type="checkbox"] {
 }
 
 @media screen and (min-width: 992px) {
-    .group-list {
-        margin-top: -60px;
-    }
     .container {
         max-width: 990px;
         margin: 0 auto;

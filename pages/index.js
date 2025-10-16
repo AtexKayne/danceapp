@@ -29,7 +29,8 @@ export default function Home() {
 		const es = new EventSource('/api/sse')
 		es.onmessage = e => {
 			try {
-				const msg = JSON.parse(e.data); refreshCounts()
+				const msg = JSON.parse(e.data); 
+				refreshCounts()
 			} catch (e) { }
 		}
 		return () => es.close()
@@ -96,6 +97,10 @@ export default function Home() {
 		setUser({ ...user, firstName: value })
 	}
 
+	const reloadHandler = () => {
+		window.location.reload()
+	}
+
 	return (
 		<>
 			<Head>
@@ -130,7 +135,14 @@ export default function Home() {
 						</div>
 					</div>
 					<div className='col'>
-						<h2>Группы (сегодня)</h2>
+						<h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
+							<span>Группы (сегодня)</span>
+							<button className="btn btn--inline" onClick={reloadHandler}>
+								<svg width="18" height="18" viewBox="0 0 24 24">
+									<path d="m19 8-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4z"></path>
+								</svg>
+							</button>
+						</h2>
 						{!groups.length && <div>Сегодня нет групп</div>}
 						{groups.map(g => {
 							const count = counts[g.id] ?? { male: 0, female: 0, supports: 0 }

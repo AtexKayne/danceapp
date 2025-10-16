@@ -134,7 +134,11 @@ export default function Admin() {
                                         <div className="group-items__item">
                                             <input type="text" placeholder="Название" value={newGroup.name} onChange={e => setNewGroup({ ...newGroup, name: e.target.value.trim() })} />
                                             <input type="hidden" placeholder="Время" value={newGroup.time} onChange={e => setNewGroup({ ...newGroup, time: e.target.value })} />
-                                            <button disabled={!newGroup.name} onClick={addGroup}>Добавить</button>
+                                            <button disabled={!newGroup.name} onClick={addGroup}>
+                                                <svg width="18" height="18" viewBox="0 0 24 24">
+                                                    <path fill="green" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"></path>
+                                                </svg>
+                                            </button>
                                         </div>
                                     </div>
                                     <h2>Сегодня проходят</h2>
@@ -144,7 +148,11 @@ export default function Admin() {
                                                 <li className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
                                                     <input type="text" defaultValue={g.name} onBlur={e => editGroup(g.id, e.target.value, g.time)} />
                                                     <input type="hidden" defaultValue={g.time} onBlur={e => editGroup(g.id, g.name, e.target.value)} />
-                                                    <button onClick={() => deleteGroup(g.id)}>Удалить</button>
+                                                    <button onClick={() => deleteGroup(g.id)}>
+                                                        <svg width="18" height="18" viewBox="0 0 24 24">
+                                                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"></path>
+                                                        </svg>
+                                                    </button>
                                                 </li>
                                             ))}
                                         </ul>
@@ -157,7 +165,11 @@ export default function Admin() {
                                 <section style={{ marginTop: 20 }}>
                                     <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
                                         <span>Списки участников</span>
-                                        <button className="btn btn--inline" onClick={initData}>Обновить</button>
+                                        <button className="btn btn--inline" onClick={initData}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24">
+                                                <path d="m19 8-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4z"></path>
+                                            </svg>
+                                        </button>
                                     </h2>
                                     <RegisteredUsers att={att} removeAttendance={removeAttendance} />
                                 </section>
@@ -238,7 +250,11 @@ const RegisteredUser = ({ data, removeAttendance }) => {
                         <li className="att-list__item" key={a.id}>
                             <span>{a.gender === 'male' ? 'М' : 'Ж'}: {a.firstName} {a.lastName} {a.isSupport ? '(саппорт)' : ''}</span>
 
-                            <button className="btn btn--inline" onClick={() => removeAttendance(a.id)}>Отменить</button>
+                            <button className="btn btn--inline" onClick={() => removeAttendance(a.id)}>
+                                <svg width="18" height="18" viewBox="0 0 24 24">
+                                    <path fill="red" d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"></path>
+                                </svg>
+                            </button>
                         </li>
                     )
                 })}
@@ -355,11 +371,15 @@ const SheduleComponent = ({ shedule, setShedule, initData }) => {
                     <div className="shedule__item-container">
                         <div className="group-items">
                             <div>Группы в {w.name}</div>
-                            <hr/>
+                            <hr />
                             <div className="group-items">
                                 <div className="group-items__item">
                                     <input type="text" name={w.i} placeholder="Название" onChange={changeHandler} />
-                                    <button disabled={!isNewDisabled.includes(w.i)} onClick={addGroup}>Добавить</button>
+                                    <button disabled={!isNewDisabled.includes(w.i)} onClick={addGroup}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24">
+                                            <path fill="green" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"></path>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                             <br />
@@ -367,9 +387,15 @@ const SheduleComponent = ({ shedule, setShedule, initData }) => {
                                 return (
                                     <div className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
                                         <input disabled={!g.isActive} type="text" defaultValue={g.name} data-default={g.name} name={w.i} onBlur={(e) => editHandler(e, g.id)} />
-                                        <button onClick={() => deleteGroup(g.id)}>Удалить</button>
+                                        <button onClick={() => deleteGroup(g.id)}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24">
+                                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"></path>
+                                            </svg>
+                                        </button>
                                         <button onClick={() => toggleGroup({ id: g.id, name: g.name, day: w.i, isActive: !g.isActive })}>
-                                            {g.isActive ? 'Выкл' : 'Вкл'}
+                                            <svg width="18" height="18" viewBox="0 0 24 24">
+                                                <path fill={g.isActive ? 'green' : 'red'} d="M13 3h-2v10h2zm4.83 2.17-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83"></path>
+                                            </svg>
                                         </button>
                                     </div>
                                 )
