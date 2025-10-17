@@ -159,9 +159,12 @@ export default function Admin() {
                                     ) : (
                                         <div>Не проходят</div>
                                     )}
-
                                 </section>
 
+                                <h2>Расписание</h2>
+                                <SheduleComponent shedule={shedule} setShedule={setShedule} initData={initData} />
+                            </div>
+                            <div className="col">
                                 <section style={{ marginTop: 20 }}>
                                     <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
                                         <span>Списки участников</span>
@@ -173,10 +176,6 @@ export default function Admin() {
                                     </h2>
                                     <RegisteredUsers att={att} removeAttendance={removeAttendance} />
                                 </section>
-                            </div>
-                            <div className="col">
-                                <h2>Расписание</h2>
-                                <SheduleComponent shedule={shedule} setShedule={setShedule} initData={initData} />
                             </div>
                         </div>
                     </>
