@@ -119,8 +119,16 @@ export default function Home() {
 				<meta name="twitter:title" content="Запись на занятие | Algorithm" />
 			</Head>
 			<main className="container">
+
+				{isAdmin && (
+					<Link className="link" href='/admin'>
+						<span>В админку</span>
+						<svg width="19" height="19" viewBox="0 0 24 24">
+							<path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path>
+						</svg>
+					</Link>
+				)}
 				<h1 onClick={getAdmin}>Запись на занятие</h1>
-				{isAdmin && <Link href='/admin'>В админку</Link>}
 				<div className='row'>
 					<div className='col'>
 						<h2>Профиль</h2>
@@ -185,7 +193,7 @@ export default function Home() {
 					</div>
 				</div>
 			</div> */}
-			</main>
+			</main >
 		</>
 	)
 }

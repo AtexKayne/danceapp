@@ -117,6 +117,12 @@ export default function Admin() {
                 <meta name="twitter:title" content="Админка | Algorithm" />
             </Head>
             <main className="container">
+                <Link className="link" href='/'>
+                    <svg width="19" height="19" viewBox="0 0 24 24">
+                        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+                    </svg>
+                    <span>На главную</span>
+                </Link>
                 <h1>Админка</h1>
                 {!auth ? (
                     <div>
@@ -125,7 +131,6 @@ export default function Admin() {
                     </div>
                 ) : (
                     <>
-                        <Link href='/'>На главную</Link>
                         <div className="row">
                             <div className="col">
                                 <section>
