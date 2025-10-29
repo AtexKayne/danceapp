@@ -1,7 +1,8 @@
-import { getData, updateData } from '../../lib/db'
+import { getNewData, updateNewData } from '../../lib/db'
+
 
 export default async function handler(req, res) {
-	const db = await getData()
+	const db = await getNewData()
 	const method = req.method
 
 	// Compute current time in UTC+5
@@ -22,7 +23,7 @@ export default async function handler(req, res) {
 
 		if (db.groups.lenght !== visible.length) {
 			db.groups = visible
-			await updateData(db)
+			// await updateData(db)
 		}
 
 		return res.json(visible)
@@ -31,10 +32,9 @@ export default async function handler(req, res) {
 	if (method === 'POST') {
 		const { name, time } = req.body
 		const todayStr = today
-		const id = (Date.now()).toString()
-		db.groups.push({ id, name, time, date: todayStr })
-		updateData(db)
-		return res.status(201).json({ id, name, time, date: todayStr })
+		const rec = { name, time, date: todayStr, dbname: 'groups' }
+		updateNewData(rec)
+		return res.status(201).json(rec)
 	}
 
 	if (method === 'PUT') {
@@ -43,14 +43,14 @@ export default async function handler(req, res) {
 		if (!g) return res.status(404).end()
 		g.name = name || g.name
 		g.time = time || g.time
-		updateData(db)
+		// updateData(db)
 		return res.status(200).json(g)
 	}
 
 	if (method === 'DELETE') {
 		const { id } = req.query
 		db.groups = db.groups.filter(g => g.id != id)
-		updateData(db)
+		// updateData(db)
 		return res.status(200).end()
 	}
 

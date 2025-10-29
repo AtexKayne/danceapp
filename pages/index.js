@@ -5,6 +5,7 @@ import { fetchData } from '../lib/db'
 
 export default function Home() {
 	const [groups, setGroups] = useState([])
+	const [groupsT, setGroupsT] = useState([])
 	const [user, setUser] = useState({ firstName: '', lastName: '', gender: 'female' })
 	const [registeredFor, setRegisteredFor] = useState({})
 	const [registereDisabled, setRegisteredDisabled] = useState([])
@@ -13,7 +14,7 @@ export default function Home() {
 	const refCount = useRef(1)
 
 	useEffect(() => {
-		fetchData('/api/groups').then(r => r.json()).then(setGroups)
+		loadGroups()
 		const saved = localStorage.getItem('user')
 		if (saved) {
 			const u = JSON.parse(saved)
@@ -26,20 +27,20 @@ export default function Home() {
 			setRegisteredFor(g)
 		}
 		setIsAdmin(localStorage.getItem('isAdmin') === 'true')
-		refreshCounts()
-		const es = new EventSource('/api/sse')
-		es.onmessage = e => {
-			try {
-				const msg = JSON.parse(e.data);
-				refreshCounts()
-			} catch (e) { }
-		}
-		return () => es.close()
 	}, [])
 
-	async function register(group) {
-		const body = { groupId: group.id, firstName: user.firstName, lastName: user.lastName, gender: user.gender, isSupport: user.isSupport || false }
-		const res = await fetchData('/api/attendance', {
+	const loadGroups = async () => {
+		const resp = await fetchData({ isIndex: true })
+		const data = await resp.json()
+
+		setGroups(data.groups.length ? data.groups[0] : [])
+		setGroupsT(data.groups.length && data.groups.length === 2 ? data.groups[1] : [])
+		setCounts(data.attendances)
+	}
+
+	async function register(group, isEmpty) {
+		const body = { action: 'register', groupId: group.id, ...user, isEmpty }
+		const res = await fetchData({
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -54,43 +55,30 @@ export default function Home() {
 			localStorage.setItem('user', JSON.stringify(user))
 			setRegisteredDisabled(Object.keys(currentGroups))
 			setRegisteredFor(currentGroups)
-			refreshCounts()
+			setTimeout(loadGroups, 500)
 		} else {
 			alert('Ошибка при регистрации')
 		}
 	}
 
-	async function cancel(groupId, id) {
-		const res = await fetchData('/api/attendance?id=' + encodeURIComponent(id), {
-			method: 'DELETE'
+	async function cancel(group, id) {
+		const groupId = group.id
+		const res = await fetchData({
+			method: 'DELETE',
+			body: JSON.stringify({ groupId, action: 'cancel', ...user })
 		})
+
 		if (res.ok) {
 			const currentGroups = JSON.parse(localStorage.getItem('groups') || '{}')
 			delete currentGroups[groupId]
 			localStorage.setItem('groups', JSON.stringify(currentGroups))
 			setRegisteredDisabled(Object.keys(currentGroups))
 			setRegisteredFor(currentGroups)
-			refreshCounts()
+			await register(group, 'true')
+			setTimeout(loadGroups, 500)
 		} else {
 			alert('Ошибка при отмене')
 		}
-	}
-
-	function refreshCounts() {
-		fetch('/api/attendance').then(r => r.json()).then(data => {
-			const map = {}
-			data.forEach(a => {
-				map[a.groupId] ??= { male: 0, female: 0, sMale: 0, sFemale: 0 }
-				if (a.gender === 'male') {
-					map[a.groupId].male += 1
-					if (a.isSupport) map[a.groupId].sMale += 1
-				} else if (a.gender === 'female') {
-					map[a.groupId].female += 1
-					if (a.isSupport) map[a.groupId].sFemale += 1
-				}
-			})
-			setCounts(map)
-		})
 	}
 
 	const setName = (e) => {
@@ -128,7 +116,14 @@ export default function Home() {
 						</svg>
 					</Link>
 				)}
-				<h1 onClick={getAdmin}>Запись на занятие</h1>
+				<h1 style={{ display: 'flex', gap: '8px', alignItems: 'center' }} onClick={getAdmin}>
+					<span>Запись на занятие</span>
+					<button className="btn btn--inline" onClick={reloadHandler}>
+						<svg width="18" height="18" viewBox="0 0 24 24">
+							<path d="m19 8-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4z"></path>
+						</svg>
+					</button>
+				</h1>
 				<div className='row'>
 					<div className='col'>
 						<h2>Профиль</h2>
@@ -154,33 +149,12 @@ export default function Home() {
 					<div className='col'>
 						<h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
 							<span>Группы (сегодня)</span>
-							<button className="btn btn--inline" onClick={reloadHandler}>
-								<svg width="18" height="18" viewBox="0 0 24 24">
-									<path d="m19 8-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4z"></path>
-								</svg>
-							</button>
 						</h2>
-						{!groups.length && <div>Сегодня нет групп</div>}
-						{groups.map(g => {
-							const count = counts[g.id] ?? { male: 0, female: 0, supports: 0 }
-							const countRU = `Партнеров: ${(count.male - count.sMale) || 0} ${count.sMale ? `(+${count.sMale} саппорт)` : ''} | Партнерш: ${(count.female - count.sFemale) || 0} ${count.sFemale ? `(+${count.sFemale} саппорт)` : ''}`
-							return (
-								<div className="card" key={g.id}>
-									<div><strong>{g.name}</strong></div>
-									<div>{countRU}</div>
-									{
-										registeredFor[g.id]
-											? (
-												<div style={{ marginTop: '12px' }}>
-													<div> Я {registeredFor[g.id].firstName} {registeredFor[g.id].lastName} приду на занятие в качестве {registeredFor[g.id].isSupport ? 'саппорта' : 'ученика'} </div>
-													<button onClick={() => cancel(g.id, registeredFor[g.id].id)}>Я не смогу (отменить запись)</button>
-												</div>
-											)
-											: <button disabled={!user.firstName || registereDisabled.includes(g.id)} onClick={() => register(g)}>Я пойду (отметиться)</button>
-									}
-								</div>
-							)
-						})}
+						<Groups groups={groups} counts={counts} registeredFor={registeredFor} register={register} cancel={cancel} user={user} registereDisabled={registereDisabled} />
+						<h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '464px' }}>
+							<span>Группы (завтра)</span>
+						</h2>
+						<Groups groups={groupsT} counts={counts} registeredFor={registeredFor} register={register} cancel={cancel} user={user} registereDisabled={registereDisabled} />
 					</div>
 				</div>
 
@@ -198,9 +172,42 @@ export default function Home() {
 	)
 }
 
-const RegisteredGroups = ({ registeredFor, cancel }) => {
+const Groups = ({ groups, counts, registeredFor, user, registereDisabled, register, cancel }) => {
+	if (!groups || !groups.length) {
+		return (<div>Сегодня нет групп</div>)
+	}
 	console.log(registeredFor);
 
+
+	return groups.map(g => {
+		const count = counts[g.id] ?? { male: 0, female: 0, supports: 0 }
+		const countRU = `Партнеров: ${(count.male) || 0} ${count.supportMale ? `(+${count.supportMale} саппорт)` : ''} | Партнерш: ${(count.female) || 0} ${count.supportFemale ? `(+${count.supportFemale} саппорт)` : ''}`
+		return (
+			<div className="card" key={g.id}>
+				<div><strong>{g.name}</strong></div>
+				<div>{countRU}</div>
+				{
+					registeredFor[g.id]
+						? (
+							<div style={{ marginTop: '12px' }}>
+								<div data-hidden={registeredFor[g.id].isEmpty === 'true'}> Я {registeredFor[g.id].firstName} {registeredFor[g.id].lastName} приду на занятие в качестве {registeredFor[g.id].isSupport ? 'саппорта' : 'ученика'} </div>
+								{registeredFor[g.id].isEmpty === 'true'
+									? <button onClick={() => register(g, 'false')}>Я смогу (записаться)</button>
+									: <button onClick={() => cancel(g)}>Я не смогу (отменить запись)</button>}
+
+							</div>
+						)
+						: <div style={{ display: 'flex', gap: '12px' }}>
+							<button disabled={!user.firstName || !user.lastName || registereDisabled.includes(g.id)} onClick={() => register(g, 'false')}>Я пойду</button>
+							<button disabled={!user.firstName || !user.lastName || registereDisabled.includes(g.id)} onClick={() => register(g, 'true')}>Я не смогу</button>
+						</div>
+				}
+			</div>
+		)
+	})
+}
+
+const RegisteredGroups = ({ registeredFor, cancel }) => {
 	const keys = Object.keys(registeredFor)
 	if (!keys.length) return <div>Нет активной записи</div>
 

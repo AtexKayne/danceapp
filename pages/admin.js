@@ -6,9 +6,12 @@ import Head from 'next/head'
 export default function Admin() {
     const [pw, setPw] = useState('')
     const [att, setAtt] = useState([])
+    const [empty, setEmpty] = useState([])
     const [auth, setAuth] = useState(false)
     const [groups, setGroups] = useState([])
+    const [groupsT, setGroupsT] = useState([])
     const [shedule, setShedule] = useState({})
+    const [shedulePure, setShedulePure] = useState({})
     const [newGroup, setNewGroup] = useState({ name: '', time: '17:00' })
 
     useEffect(() => {
@@ -26,41 +29,22 @@ export default function Admin() {
     }
 
     const initData = async () => {
-        const r1 = await fetchData('/api/shedule');
-        const ss = await r1.json()
+        const resp = await fetchData({ isAdmin: true })
+        const data = await resp.json()
 
-        const r2 = await fetchData('/api/groups');
-        const gs = await r2.json()
+        setShedulePure(data.schedule)
+        setGroupsT(data.groups.length && data.groups.length === 2 ? data.groups[1] : [])
+        setGroups(data.groups.length ? data.groups[0] : [])
+        setEmpty(data.empty)
+        setAtt(data.attendances)
 
-        const r3 = await fetchData('/api/attendance');
-        const as = await r3.json()
-
-
-        const upd = {}
-        as.forEach(a => {
-            const thisGroup = gs.filter(g => a.groupId === g.id)[0]
-            if (thisGroup && thisGroup.id) {
-                const uData = {
-                    ...a,
-                    groupName: thisGroup.name,
-                    groupTime: thisGroup.time,
-                    groupId: thisGroup.id
-                }
-                if (Array.isArray(upd[thisGroup.id])) {
-                    upd[thisGroup.id].push(uData)
-                } else {
-                    upd[thisGroup.id] = [uData]
-                }
-            }
-        })
-
-        setShedule(ss)
-        setGroups(gs)
-        setAtt(upd)
+        const nsh = {}
+        data.schedule.forEach(el => nsh[el.day] = JSON.parse(el.groups || "[]"))
+        setShedule(nsh)
     }
 
     async function login() {
-        const res = await fetchData('/api/admin/check?pw=' + encodeURIComponent(pw))
+        const res = await fetch('/api/admin/check?pw=' + encodeURIComponent(pw))
         if (res.ok) {
             localStorage.setItem('isAdmin', 'true')
             setAuth(true)
@@ -70,7 +54,7 @@ export default function Admin() {
     }
 
     async function addGroup() {
-        await fetchData('/api/groups', {
+        await fetchData({
             method: 'POST',
             headers:
             {
@@ -78,34 +62,50 @@ export default function Admin() {
             },
             body: JSON.stringify({
                 name: newGroup.name,
-                time: newGroup.time
+                time: newGroup.time,
+                action: 'addGroup'
             })
         })
         setNewGroup({ name: '', time: '17:00' });
-        initData()
+        setTimeout(initData, 500)
     }
 
     async function deleteGroup(id) {
-        await fetchData('/api/groups?id=' + id, {
-            method: 'DELETE'
-        });
-        initData()
+        const res = await fetchData({
+            method: 'DELETE',
+            body: JSON.stringify({ id, action: 'deleteGroup' })
+        })
+
+        if (res.ok) {
+            setTimeout(initData, 500)
+        } else {
+            alert('Ошибка при отмене')
+        }
     }
 
-    async function editGroup(id, name, time) {
-        await fetchData('/api/groups', {
-            method: 'PUT',
+    async function editGroup(group, value) {
+        const res = await fetchData({
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id, name, time })
+            body: JSON.stringify({ ...group, name: value, action: 'updateGroup' })
         });
-        initData()
+
+        setTimeout(initData, 500)
     }
 
-    async function removeAttendance(id) {
-        await fetchData('/api/attendance?id=' + id, { method: 'DELETE' });
-        initData()
+    async function removeAttendance(user, groupId) {
+        const res = await fetchData({
+            method: 'DELETE',
+            body: JSON.stringify({ ...user, groupId, action: 'cancel' })
+        })
+
+        if (res.ok) {
+            setTimeout(initData, 500)
+        } else {
+            alert('Ошибка при отмене')
+        }
     }
 
     return (
@@ -151,8 +151,27 @@ export default function Admin() {
                                         <ul className="group-items">
                                             {groups.map(g => (
                                                 <li className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
-                                                    <input type="text" defaultValue={g.name} onBlur={e => editGroup(g.id, e.target.value, g.time)} />
-                                                    <input type="hidden" defaultValue={g.time} onBlur={e => editGroup(g.id, g.name, e.target.value)} />
+                                                    <input type="text" defaultValue={g.name} onBlur={e => editGroup(g, e.target.value)} />
+                                                    {/* <input type="hidden" defaultValue={g.time} onBlur={e => editGroup(g, e.target.value)} /> */}
+                                                    <button onClick={() => deleteGroup(g.id)}>
+                                                        <svg width="18" height="18" viewBox="0 0 24 24">
+                                                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <div>Не проходят</div>
+                                    )}
+
+                                    <h2>Завтра проходят</h2>
+                                    {groupsT && groupsT.length ? (
+                                        <ul className="group-items">
+                                            {groupsT.map(g => (
+                                                <li className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
+                                                    <input type="text" defaultValue={g.name} onBlur={e => editGroup(g, e.target.value)} />
+                                                    {/* <input type="hidden" defaultValue={g.time} onBlur={e => editGroup(g, e.target.value)} /> */}
                                                     <button onClick={() => deleteGroup(g.id)}>
                                                         <svg width="18" height="18" viewBox="0 0 24 24">
                                                             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"></path>
@@ -167,7 +186,7 @@ export default function Admin() {
                                 </section>
 
                                 <h2>Расписание</h2>
-                                <SheduleComponent shedule={shedule} setShedule={setShedule} initData={initData} />
+                                <SheduleComponent shedule={shedule} setShedule={setShedule} initData={initData} shedulePure={shedulePure} />
                             </div>
                             <div className="col">
                                 <section style={{ marginTop: 20 }}>
@@ -179,7 +198,7 @@ export default function Admin() {
                                             </svg>
                                         </button>
                                     </h2>
-                                    <RegisteredUsers att={att} removeAttendance={removeAttendance} />
+                                    <RegisteredUsers att={att} empty={empty} removeAttendance={removeAttendance} />
                                 </section>
                             </div>
                         </div>
@@ -190,9 +209,8 @@ export default function Admin() {
     )
 }
 
-const RegisteredUsers = ({ att, removeAttendance }) => {
+const RegisteredUsers = ({ att, empty, removeAttendance }) => {
     const [selectedGroup, setSelectedGroup] = useState('all')
-
     const keys = Object.keys(att)
     if (!keys.length) return <div>Нет записей</div>
 
@@ -212,7 +230,8 @@ const RegisteredUsers = ({ att, removeAttendance }) => {
                     return (
                         <div key={key} data-active={selectedGroup.includes(key) || selectedGroup === 'all'} className="card group-list__item">
                             <b>Группа: {data[0].groupName}</b>
-                            <RegisteredUser data={data} removeAttendance={removeAttendance} />
+                            <RegisteredUser data={data} groupId={key} removeAttendance={removeAttendance} />
+                            <Unregitered data={empty} groupId={key}/>
                             {/* <div>{a.firstName} {a.lastName} — {a.gender} {a.isSupport ? '(support)' : ''}</div>
                             <div>Группа: {a.groupName}</div>
                             <button onClick={() => removeAttendance(a.id)}>Отменить</button> */}
@@ -224,7 +243,7 @@ const RegisteredUsers = ({ att, removeAttendance }) => {
     )
 }
 
-const RegisteredUser = ({ data, removeAttendance }) => {
+const RegisteredUser = ({ data, removeAttendance, groupId }) => {
     if (!data.length) return <div>Нет записей</div>
     const male = []
     const female = []
@@ -248,13 +267,15 @@ const RegisteredUser = ({ data, removeAttendance }) => {
                 Партнеров: {male.length} {sMale.length ? `(+${sMale.length})` : ''} |
                 Партнерш: {female.length} {sFemale.length ? `(+${sFemale.length})` : ''}
             </div>
+            <br />
+            <strong>Придут:</strong>
             <ol className="att-list">
                 {data.map(a => {
                     return (
                         <li className="att-list__item" key={a.id}>
                             <span>{a.gender === 'male' ? 'М' : 'Ж'}: {a.firstName} {a.lastName} {a.isSupport ? '(саппорт)' : ''}</span>
 
-                            <button className="btn btn--inline" onClick={() => removeAttendance(a.id)}>
+                            <button className="btn btn--inline" onClick={() => removeAttendance(a, groupId)}>
                                 <svg width="18" height="18" viewBox="0 0 24 24">
                                     <path fill="red" d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"></path>
                                 </svg>
@@ -267,7 +288,26 @@ const RegisteredUser = ({ data, removeAttendance }) => {
     )
 }
 
-const SheduleComponent = ({ shedule, setShedule, initData }) => {
+const Unregitered = ({data,groupId}) => {
+    if (!data[groupId]) return ''
+
+    return (
+        <div>
+            <strong>Не придут:</strong>
+            <ol className="att-list">
+                {data[groupId].map(a => {
+                    return (
+                        <li className="att-list__item" key={a.id}>
+                            <span>{a.firstName} {a.lastName} {a.isSupport ? '(саппорт)' : ''}</span>
+                        </li>
+                    )
+                })}
+            </ol>
+        </div>
+    )
+}
+
+const SheduleComponent = ({ shedule, setShedule, initData, shedulePure }) => {
     const now = new Date()
     const currentDay = ['7', '1', '2', '3', '4', '5', '6'][now.getDay()];
     const [isNewDisabled, setIsNewDisabled] = useState([])
@@ -297,9 +337,11 @@ const SheduleComponent = ({ shedule, setShedule, initData }) => {
         { i: '7', short: 'вс', name: 'воскресенье' }
     ]
 
-    const addGroup = async (event) => {
+    const addGroupToShedule = async (event) => {
         const { target } = event
         const input = target.previousSibling
+        if (!input || !input.value) return
+
         const value = input.value
         const day = input.name
         const isExist = Array.isArray(shedule[day]) && (shedule[day].findIndex(a => a.name.toLowerCase() === value.toLowerCase()) + 1)
@@ -312,52 +354,79 @@ const SheduleComponent = ({ shedule, setShedule, initData }) => {
             newShedule[day] = [{ name: value, id: (Date.now()).toString(), isActive: true }]
         }
 
+        const textGroups = JSON.stringify(newShedule[day])
+
         input.value = ''
 
-        await fetchData('/api/shedule', {
+        await fetchData({
             method: 'POST',
             headers:
             {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ shedules: newShedule })
+            body: JSON.stringify({ id: day, day, groups: textGroups, action: 'addSheduleGroup' })
         })
 
         setShedule(newShedule)
+        setTimeout(initData, 500)
     }
 
-    const toggleGroup = async (data) => {
-        await fetchData('/api/shedule', {
-            method: 'PUT',
+    const toggleGroupInShedule = async (id, day, isActive) => {
+        const sh = [...shedulePure].filter(el => el.day === day)[0]
+        const ch = JSON.parse(sh.groups)
+        const cg = ch.filter(g => g.id === id)[0]
+        if (!cg) return alert('Ошибка редактирования')
+
+        cg.isActive = isActive
+
+        await fetchData({
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ ...data })
+            body: JSON.stringify({ id: day, day, groups: JSON.stringify(ch), action: 'editSheduleGroup' })
         });
-        initData()
+        setTimeout(initData, 500)
     }
 
-    const editHandler = async (event, id) => {
+    const editGroupInShedule = async (event, id) => {
         const { target } = event
         const { name, value } = target
         if (!value) return target.value = target.dataset.default
         if (value === target.dataset.default) return
 
-        await fetchData('/api/shedule', {
-            method: 'PUT',
+        const sh = [...shedulePure].filter(el => el.day === name)[0]
+        const ch = JSON.parse(sh.groups)
+        const cg = ch.filter(g => g.id === id)[0]
+        if (!cg) return alert('Ошибка редактирования')
+
+        cg.name = value
+
+        await fetchData({
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id, name: value, day: name, isActive: true })
+            body: JSON.stringify({ id: name, day: name, groups: JSON.stringify(ch), action: 'editSheduleGroup' })
         });
-        initData()
+        setTimeout(initData, 500)
     }
 
-    const deleteGroup = async (id) => {
-        await fetchData(`/api/shedule?id=${id}&day=${activeTab}`, {
-            method: 'DELETE'
+    const deleteGroupFromShedule = async (id, day) => {
+        const sh = [...shedulePure].filter(el => el.day === day)[0]
+        const ch = JSON.parse(sh.groups)
+        const ci = ch.findIndex(g => g.id === id)
+        if (ci === -1) return
+        ch.splice(ci, 1)
+
+        await fetchData({
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: day, day, groups: JSON.stringify(ch), action: 'editSheduleGroup' })
         });
-        initData()
+        setTimeout(initData, 500)
     }
 
     return (
@@ -379,7 +448,7 @@ const SheduleComponent = ({ shedule, setShedule, initData }) => {
                             <div className="group-items">
                                 <div className="group-items__item">
                                     <input type="text" name={w.i} placeholder="Название" onChange={changeHandler} />
-                                    <button disabled={!isNewDisabled.includes(w.i)} onClick={addGroup}>
+                                    <button disabled={!isNewDisabled.includes(w.i)} onClick={addGroupToShedule}>
                                         <svg width="18" height="18" viewBox="0 0 24 24">
                                             <path fill="green" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"></path>
                                         </svg>
@@ -387,16 +456,16 @@ const SheduleComponent = ({ shedule, setShedule, initData }) => {
                                 </div>
                             </div>
                             <br />
-                            {shedule[w.i] && shedule[w.i].length ? shedule[w.i].map(g => {
+                            {shedule[w.i] && Array.isArray(shedule[w.i]) ? shedule[w.i].map(g => {
                                 return (
                                     <div className="group-items__item" key={g.id} style={{ marginTop: 8 }}>
-                                        <input disabled={!g.isActive} type="text" defaultValue={g.name} data-default={g.name} name={w.i} onBlur={(e) => editHandler(e, g.id)} />
-                                        <button onClick={() => deleteGroup(g.id)}>
+                                        <input disabled={!g.isActive} type="text" defaultValue={g.name} data-default={g.name} name={w.i} onBlur={(e) => editGroupInShedule(e, g.id)} />
+                                        <button onClick={() => deleteGroupFromShedule(g.id, w.i)}>
                                             <svg width="18" height="18" viewBox="0 0 24 24">
                                                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"></path>
                                             </svg>
                                         </button>
-                                        <button onClick={() => toggleGroup({ id: g.id, name: g.name, day: w.i, isActive: !g.isActive })}>
+                                        <button onClick={() => toggleGroupInShedule(g.id, w.i, !g.isActive)}>
                                             <svg width="18" height="18" viewBox="0 0 24 24">
                                                 <path fill={g.isActive ? 'green' : 'red'} d="M13 3h-2v10h2zm4.83 2.17-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83"></path>
                                             </svg>

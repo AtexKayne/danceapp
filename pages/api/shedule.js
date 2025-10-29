@@ -1,8 +1,7 @@
-import { nanoid } from 'nanoid'
-import { getData, updateData } from '../../lib/db'
+import { getNewData, updateNewData } from '../../lib/db'
 
 export default async function handler(req, res) {
-	const db = await getData()
+	const db = await getNewData()
 	const method = req.method
 	const now = new Date()
 	const currentDay = ['7', '1', '2', '3', '4', '5', '6'][now.getDay()];
@@ -14,7 +13,7 @@ export default async function handler(req, res) {
 		if (!visible) {
 			visible = {}
 			db.shedule = {}
-			await updateData(db)
+			// await updateData(db)
 		}
 		if (!visible[currentDay]) return res.json(visible)
 
@@ -34,7 +33,7 @@ export default async function handler(req, res) {
 				isNeedUpdate = true
 			}
 		})
-		if (isNeedUpdate) await updateData(db)
+		// if (isNeedUpdate) await updateData(db)
 		return res.json(visible)
 	}
 
@@ -52,7 +51,7 @@ export default async function handler(req, res) {
 				})]
 			}
 		})
-		updateData(db)
+		// updateData(db)
 		notifySSE({ type: 'shedule_added', payload: db.shedule })
 		return res.status(201).json(db)
 	}
@@ -65,7 +64,7 @@ export default async function handler(req, res) {
 		if (!db.shedule[day] || !db.shedule[day].length) {
 			delete db.shedule[day]
 		}
-		updateData(db);
+		// updateData(db);
 		notifySSE({ type: 'shedule_removed', payload: removed })
 		return res.status(200).end()
 	}
@@ -76,7 +75,7 @@ export default async function handler(req, res) {
 		if (!g) return res.status(404).end()
 		g.name = name || g.name
 		g.isActive = isActive
-		updateData(db)
+		// updateData(db)
 		return res.status(200).json(g)
 	}
 
