@@ -30,7 +30,7 @@ export default function Home() {
 	}, [])
 
 	const loadGroups = async () => {
-		const resp = await fetchData({ isIndex: true })
+		const resp = await fetchData({ isIndex: true })		
 		const data = await resp.json()
 
 		setGroups(data.groups.length ? data.groups[0] : [])
@@ -116,7 +116,7 @@ export default function Home() {
 						</svg>
 					</Link>
 				)}
-				<h1 style={{ display: 'flex', gap: '8px', alignItems: 'center' }} onClick={getAdmin}>
+				<h1 style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'space-between'}} onClick={getAdmin}>
 					<span>Запись на занятие</span>
 					<button className="btn btn--inline" onClick={reloadHandler}>
 						<svg width="18" height="18" viewBox="0 0 24 24">
@@ -157,16 +157,6 @@ export default function Home() {
 						<Groups groups={groupsT} counts={counts} registeredFor={registeredFor} register={register} cancel={cancel} user={user} registereDisabled={registereDisabled} />
 					</div>
 				</div>
-
-				{/* <div className='row'>
-				<div className='col'></div>
-				<div className='col'>
-					<div style={{ marginTop: 20 }}>
-						<h2>Твоя запись</h2>
-						<RegisteredGroups registeredFor={registeredFor} cancel={cancel} />
-					</div>
-				</div>
-			</div> */}
 			</main >
 		</>
 	)
@@ -176,8 +166,6 @@ const Groups = ({ groups, counts, registeredFor, user, registereDisabled, regist
 	if (!groups || !groups.length) {
 		return (<div>Сегодня нет групп</div>)
 	}
-	console.log(registeredFor);
-
 
 	return groups.map(g => {
 		const count = counts[g.id] ?? { male: 0, female: 0, supports: 0 }
@@ -192,7 +180,7 @@ const Groups = ({ groups, counts, registeredFor, user, registereDisabled, regist
 							<div style={{ marginTop: '12px' }}>
 								<div data-hidden={registeredFor[g.id].isEmpty === 'true'}> Я {registeredFor[g.id].firstName} {registeredFor[g.id].lastName} приду на занятие в качестве {registeredFor[g.id].isSupport ? 'саппорта' : 'ученика'} </div>
 								{registeredFor[g.id].isEmpty === 'true'
-									? <button onClick={() => register(g, 'false')}>Я смогу (записаться)</button>
+									? <button onClick={() => register(g, 'false')}>Я приду (записаться)</button>
 									: <button onClick={() => cancel(g)}>Я не смогу (отменить запись)</button>}
 
 							</div>
@@ -206,21 +194,3 @@ const Groups = ({ groups, counts, registeredFor, user, registereDisabled, regist
 		)
 	})
 }
-
-const RegisteredGroups = ({ registeredFor, cancel }) => {
-	const keys = Object.keys(registeredFor)
-	if (!keys.length) return <div>Нет активной записи</div>
-
-	return keys.map(key => {
-		const data = registeredFor[key]
-		return (
-			<div className="card" key={key}>
-				<span>
-					{data.firstName} {data.lastName} {data.gender === 'male' ? 'записан' : 'записана'} на группу {data.name} в {data.time} в качестве {data.isSupport ? 'саппорта' : 'ученика'}
-				</span>
-				<button onClick={() => cancel(key, data.id)}>Отменить запись</button>
-			</div>
-		)
-	})
-}
-

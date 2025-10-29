@@ -89,8 +89,6 @@ const deleteGroup = async (body) => {
 
 const registerUser = async (body) => {
     const { groupId, firstName, lastName, gender, isSupport = false, isEmpty } = body
-    console.log(body);
-
     const rec = { groupId, firstName, lastName, gender, isSupport, dbname: 'attendances', isEmpty }
     const resp = await updateNewData(rec)
     return resp

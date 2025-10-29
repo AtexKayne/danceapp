@@ -134,7 +134,7 @@ export default function Admin() {
                         <div className="row">
                             <div className="col">
                                 <section>
-                                    <h2>Группы</h2>
+                                    <h2>Добавить группу</h2>
                                     <div className="group-items">
                                         <div className="group-items__item">
                                             <input type="text" placeholder="Название" value={newGroup.name} onChange={e => setNewGroup({ ...newGroup, name: e.target.value.trim() })} />
@@ -211,27 +211,54 @@ export default function Admin() {
 
 const RegisteredUsers = ({ att, empty, removeAttendance }) => {
     const [selectedGroup, setSelectedGroup] = useState('all')
-    const keys = Object.keys(att)
-    if (!keys.length) return <div>Нет записей</div>
+    const keys = Object.keys(att).concat(Object.keys(empty))
+    const ids = [...new Set(keys)];
+
+    if (!ids.length) return <div>Нет записей</div>
 
     return (
         <div className="group-list">
             <div className="group-list__select">
                 <select value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)}>
                     <option value="all">Все</option>
-                    {keys.map(key => (
-                        <option key={key} value={key}>{att[key][0].groupName}</option>
+                    {ids.map(key => (
+                        <option key={key} value={key}>{att[key] ? att[key][0].groupName : empty[key][0].groupName}</option>
                     ))}
                 </select>
             </div>
             {
-                keys.map(key => {
-                    const data = att[key]
+                ids.map(key => {
+
+                    const dataF = att[key] || null
+                    const dataE = empty[key] || null
+                    const groupName = dataF ? dataF[0].groupName : dataE[0].groupName
+                    const male = []
+                    const female = []
+                    const sMale = []
+                    const sFemale = []
+
+                    if (dataF) {
+                        dataF.forEach(u => {
+                            if (u.gender === 'male') {
+                                if (u.isSupport) sMale.push(u)
+                                else male.push(u)
+                            } else {
+                                if (u.isSupport) sFemale.push(u)
+                                else female.push(u)
+                            }
+                        })
+                    }
+
                     return (
                         <div key={key} data-active={selectedGroup.includes(key) || selectedGroup === 'all'} className="card group-list__item">
-                            <b>Группа: {data[0].groupName}</b>
-                            <RegisteredUser data={data} groupId={key} removeAttendance={removeAttendance} />
-                            <Unregitered data={empty} groupId={key}/>
+                            <b>Группа: {groupName}</b>
+                            <div>
+                                Партнеров: {male.length} {sMale.length ? `(+${sMale.length})` : ''} |
+                                Партнерш: {female.length} {sFemale.length ? `(+${sFemale.length})` : ''}
+                            </div>
+                            <br />
+                            {dataF && <RegisteredUser data={dataF} groupId={key} removeAttendance={removeAttendance} />}
+                            {dataE && <UnregisteredUser data={dataE} />}
                             {/* <div>{a.firstName} {a.lastName} — {a.gender} {a.isSupport ? '(support)' : ''}</div>
                             <div>Группа: {a.groupName}</div>
                             <button onClick={() => removeAttendance(a.id)}>Отменить</button> */}
@@ -245,29 +272,9 @@ const RegisteredUsers = ({ att, empty, removeAttendance }) => {
 
 const RegisteredUser = ({ data, removeAttendance, groupId }) => {
     if (!data.length) return <div>Нет записей</div>
-    const male = []
-    const female = []
-    const sMale = []
-    const sFemale = []
-
-    data.forEach(u => {
-        if (u.gender === 'male') {
-            if (u.isSupport) sMale.push(u)
-            else male.push(u)
-        } else {
-            if (u.isSupport) sFemale.push(u)
-            else female.push(u)
-        }
-    })
-
 
     return (
         <div>
-            <div>
-                Партнеров: {male.length} {sMale.length ? `(+${sMale.length})` : ''} |
-                Партнерш: {female.length} {sFemale.length ? `(+${sFemale.length})` : ''}
-            </div>
-            <br />
             <strong>Придут:</strong>
             <ol className="att-list">
                 {data.map(a => {
@@ -288,14 +295,14 @@ const RegisteredUser = ({ data, removeAttendance, groupId }) => {
     )
 }
 
-const Unregitered = ({data,groupId}) => {
-    if (!data[groupId]) return ''
+const UnregisteredUser = ({ data }) => {
+    if (!data) return
 
     return (
         <div>
             <strong>Не придут:</strong>
             <ol className="att-list">
-                {data[groupId].map(a => {
+                {data.map(a => {
                     return (
                         <li className="att-list__item" key={a.id}>
                             <span>{a.firstName} {a.lastName} {a.isSupport ? '(саппорт)' : ''}</span>
