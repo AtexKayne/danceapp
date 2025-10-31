@@ -29,6 +29,14 @@ export default function Home() {
 		setIsAdmin(localStorage.getItem('isAdmin') === 'true')
 	}, [])
 
+	// useEffect(() => {
+	// 	const saved = JSON.parse(localStorage.getItem('user') || '')
+	// 	if (saved) {
+	// 		const currentGroups = JSON.parse(localStorage.getItem('groups') || '{}')
+	// 		console.log(user, saved, currentGroups);
+	// 	}
+	// }, [user])
+
 	const loadGroups = async () => {
 		const resp = await fetchData({ isIndex: true })		
 		const data = await resp.json()
@@ -164,7 +172,7 @@ export default function Home() {
 
 const Groups = ({ groups, counts, registeredFor, user, registereDisabled, register, cancel }) => {
 	if (!groups || !groups.length) {
-		return (<div>Сегодня нет групп</div>)
+		return (<div>Нет групп</div>)
 	}
 
 	return groups.map(g => {
