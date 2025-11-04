@@ -33,14 +33,24 @@ export default function Admin() {
         const data = await resp.json()
 
         setShedulePure(data.schedule)
-        setGroupsT(data.groups.length && data.groups.length === 2 ? data.groups[1] : [])
-        setGroups(data.groups.length ? data.groups[0] : [])
         setEmpty(data.empty)
         setAtt(data.attendances)
 
         const nsh = {}
         data.schedule.forEach(el => nsh[el.day] = JSON.parse(el.groups || "[]"))
         setShedule(nsh)
+
+        if (!data.groups.length) return
+        if (data.groups.length === 2) {
+            setGroups(data.groups[0])
+            return setGroupsT(data.groups[1])
+        }
+        const date = new Date().toLocaleDateString('en-CA', {
+            timeZone: 'Asia/Yekaterinburg'
+        });
+        const isDateToday = data.groups[0][0].date === date
+        const funcSet = isDateToday ? setGroups : setGroupsT
+        funcSet(data.groups[0])
     }
 
     async function login() {
@@ -77,7 +87,7 @@ export default function Admin() {
         })
 
         if (res.ok) {
-            setTimeout(initData, 500)
+            setTimeout(() => window.location.reload(), 500)
         } else {
             alert('Ошибка при отмене')
         }
