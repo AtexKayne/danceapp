@@ -38,12 +38,21 @@ export default function Home() {
 	// }, [user])
 
 	const loadGroups = async () => {
-		const resp = await fetchData({ isIndex: true })		
+		const resp = await fetchData({ isIndex: true })
 		const data = await resp.json()
-
-		setGroups(data.groups.length ? data.groups[0] : [])
-		setGroupsT(data.groups.length && data.groups.length === 2 ? data.groups[1] : [])
 		setCounts(data.attendances)
+
+		if (!data.groups.length) return
+		if (data.groups.length === 2) {
+			setGroups(data.groups[0])
+			return setGroupsT(data.groups[1])
+		}
+		const date = new Date().toLocaleDateString('en-CA', {
+			timeZone: 'Asia/Yekaterinburg'
+		});
+		const isDateToday = data.groups[0][0].date === date
+		const funcSet = isDateToday ? setGroups : setGroupsT
+		funcSet(data.groups[0])
 	}
 
 	async function register(group, isEmpty) {
@@ -124,7 +133,7 @@ export default function Home() {
 						</svg>
 					</Link>
 				)}
-				<h1 style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'space-between'}} onClick={getAdmin}>
+				<h1 style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'space-between' }} onClick={getAdmin}>
 					<span>Запись на занятие</span>
 					<button className="btn btn--inline" onClick={reloadHandler}>
 						<svg width="18" height="18" viewBox="0 0 24 24">
